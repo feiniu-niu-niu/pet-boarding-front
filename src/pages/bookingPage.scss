@@ -1,0 +1,396 @@
+.booking-page-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.booking-page-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.booking-page-header {
+  margin-bottom: 24px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.booking-page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0 0 8px 0;
+}
+
+.booking-store-name {
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.booking-form {
+  background-color: white;
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .booking-form-header {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .form-disabled-tip {
+    padding: 8px 16px;
+    background-color: #fff7e6;
+    border: 1px solid #ffd591;
+    border-radius: 6px;
+    color: #d46b08;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 0;
+
+    .form-item-half {
+      flex: 1;
+      margin-bottom: 24px;
+    }
+  }
+
+  .ant-form-item {
+    margin-bottom: 24px;
+
+    .ant-form-item-label {
+      padding-bottom: 8px;
+
+      label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #262626;
+      }
+    }
+  }
+
+  .ant-input,
+  .ant-input-number,
+  .ant-select-selector,
+  .ant-picker {
+    border-radius: 6px;
+    border: 1px solid #d9d9d9;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #40a9ff;
+    }
+
+    &:focus,
+    &.ant-input-focused,
+    &.ant-select-focused .ant-select-selector {
+      border-color: #1890ff;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+  }
+
+  .ant-input-number {
+    width: 100%;
+  }
+
+  .ant-picker {
+    width: 100%;
+  }
+
+  .booking-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+
+    .ant-btn {
+      min-width: 100px;
+      height: 40px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+
+      &.ant-btn-primary {
+        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+        border: none;
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+
+        &:hover {
+          background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+          box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+        }
+      }
+
+      &.ant-btn-default {
+        border-color: #d9d9d9;
+        color: #595959;
+
+        &:hover {
+          border-color: #40a9ff;
+          color: #1890ff;
+        }
+      }
+    }
+  }
+}
+
+// 宠物选择弹窗样式
+.pet-select-modal {
+  .ant-modal-content {
+    border-radius: 12px;
+  }
+
+  .ant-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .ant-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  .ant-modal-body {
+    padding: 24px;
+  }
+}
+
+.pet-select-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.pet-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.pet-select-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+
+  &:hover {
+    border-color: #1890ff;
+    background-color: #f0f5ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  }
+
+  &.selected {
+    border-color: #1890ff;
+    background-color: #e6f7ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+  }
+
+  .pet-select-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #f0f0f0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .pet-select-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pet-select-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  .pet-select-details {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pet-detail-tag {
+    padding: 4px 12px;
+    background-color: #f0f0f0;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #595959;
+    white-space: nowrap;
+  }
+
+  .pet-select-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+}
+
+// 服务列表样式
+.service-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.service-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+  }
+}
+
+.service-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.service-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.service-item-desc {
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.4;
+}
+
+.service-item-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff4d4f;
+  margin-top: 4px;
+}
+
+.service-item-quantity {
+  flex-shrink: 0;
+}
+
+// 价格汇总样式
+.price-summary {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.price-summary-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 12px;
+}
+
+.price-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #595959;
+}
+
+.price-label {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.price-value {
+  color: #262626;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.price-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid #e8e8e8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.price-total .price-label {
+  color: #262626;
+  font-size: 14px;
+}
+
+.price-total .price-value {
+  color: #ff4d4f;
+  font-size: 16px;
+}
+

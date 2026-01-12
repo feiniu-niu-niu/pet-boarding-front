@@ -1,0 +1,55 @@
+.payment-page-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.payment-page-content {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 16px 40px;
+}
+
+.payment-card {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+}
+
+.payment-qrcode {
+  margin: 24px 0 12px;
+  text-align: center;
+}
+
+.payment-qrcode-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  align-items: center;
+}
+
+.payment-qrcode-url {
+  margin-top: 12px;
+  color: #666;
+}
+
+.payment-countdown {
+  font-size: 14px;
+  color: #999;
+}
+
+.payment-countdown-inline {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fa8c16;
+}
+
+.payment-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  width: 100%;
+}
+
+

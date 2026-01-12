@@ -1,0 +1,57 @@
+// PetEditModal 组件样式
+
+.pet-edit-form {
+  margin-top: 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.form-item-half {
+  flex: 1;
+}
+
+// 上传组件样式
+:global {
+  .ant-upload-select-picture-card {
+    width: 104px;
+    height: 104px;
+    border-radius: 8px;
+    border: 1px dashed #d9d9d9;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #722ed1;
+    }
+  }
+
+  .ant-upload-list-picture-card {
+    .ant-upload-list-item {
+      width: 104px;
+      height: 104px;
+      border-radius: 8px;
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-item-half {
+    width: 100%;
+  }
+}
+
+
+
+
+
+
+

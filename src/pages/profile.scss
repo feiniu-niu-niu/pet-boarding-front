@@ -1,0 +1,560 @@
+// Profile 页面样式
+
+.profile-container {
+  min-height: 100vh;
+  background-color: #fafafa;
+}
+
+.profile-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.profile-wrapper {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 60px;
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+// 左侧头像区域
+.profile-left {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.profile-avatar-container {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// 分隔线
+.profile-divider {
+  width: 1px;
+  background-color: #e8e8e8;
+  align-self: stretch;
+}
+
+// 右侧信息区域
+.profile-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-greeting {
+  font-size: 36px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.profile-email {
+  font-size: 16px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+// 宠物展示区域
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+// 宠物区域标题和添加按钮
+.pets-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.pets-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+}
+
+.add-pet-button {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  background: linear-gradient(135deg, #b37feb 0%, #722ed1 100%);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(114, 46, 209, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 宠物卡片网格
+.pets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+// 宠物卡片
+.pet-card {
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+  }
+}
+
+.pet-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pet-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.pet-basic-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pet-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pet-type-breed {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.pet-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.pet-info-row {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.pet-info-label {
+  color: #8c8c8c;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.pet-info-value {
+  color: #262626;
+  flex: 1;
+}
+
+.pet-card-footer {
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.pet-edit-button {
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #722ed1;
+  background-color: #ffffff;
+  border: 1px solid #722ed1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+
+  &:hover {
+    background-color: #722ed1;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(114, 46, 209, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 左侧编辑按钮特殊样式
+.profile-left .pet-edit-button {
+  width: 100%;
+  max-width: 200px;
+  margin-top: 0;
+}
+
+// 没有宠物时的提示
+.no-pets-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 24px;
+  color: #8c8c8c;
+  font-size: 16px;
+  background-color: #fafafa;
+  border-radius: 12px;
+  border: 2px dashed #d9d9d9;
+}
+
+// 门店信息提示
+.store-message {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.store-message-content {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.store-message-text {
+  font-size: 18px;
+  color: #262626;
+  margin: 0;
+  font-weight: 500;
+}
+
+.store-associate-button {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #b37feb 0%, #722ed1 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(114, 46, 209, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 门店信息卡片
+.store-card {
+  width: 100%;
+  margin-top: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.store-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.store-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.store-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.store-card .store-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #262626;
+  letter-spacing: 0.5px;
+}
+
+.store-card .store-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  &.active {
+    background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+    color: #389e0d;
+    border: 1px solid #b7eb8f;
+    box-shadow: 0 2px 4px rgba(82, 196, 26, 0.2);
+  }
+
+  &.inactive {
+    background: linear-gradient(135deg, #fff2e8 0%, #ffe7ba 100%);
+    color: #d46b08;
+    border: 1px solid #ffd591;
+    box-shadow: 0 2px 4px rgba(250, 140, 22, 0.2);
+  }
+}
+
+.store-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.store-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f5f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.store-info-label {
+  color: #595959;
+  font-weight: 600;
+  min-width: 80px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.store-info-value {
+  color: #262626;
+  flex: 1;
+  word-break: break-word;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.action-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.action-btn-purple {
+  color: #ffffff;
+  background: linear-gradient(135deg, #b37feb 0%, #722ed1 100%);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(114, 46, 209, 0.3);
+  }
+}
+
+.action-btn-red {
+  color: #ffffff;
+  background: linear-gradient(135deg, #ff7875 0%, #ff4d4f 100%);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+  }
+}
+
+.action-btn-gray {
+  color: #595959;
+  background-color: #f5f5f5;
+  border: 1px solid #d9d9d9;
+
+  &:hover {
+    background-color: #e8e8e8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 响应式设计
+@media (max-width: 968px) {
+  .profile-wrapper {
+    flex-direction: column;
+    padding: 40px;
+    gap: 40px;
+  }
+
+  .profile-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .profile-left {
+    align-items: center;
+    width: 100%;
+  }
+
+  .profile-avatar-container {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+  }
+
+  .profile-left .pet-edit-button {
+    max-width: 150px;
+  }
+
+  .profile-greeting {
+    font-size: 28px;
+    text-align: center;
+  }
+
+  .profile-email {
+    text-align: center;
+  }
+
+  .pets-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .pets-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .add-pet-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-content {
+    padding: 40px 16px;
+  }
+
+  .profile-wrapper {
+    padding: 24px;
+  }
+
+  .profile-left {
+    align-items: center;
+  }
+
+  .profile-avatar-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  .profile-left .pet-edit-button {
+    max-width: 120px;
+    font-size: 12px;
+    padding: 6px 16px;
+  }
+
+  .profile-greeting {
+    font-size: 24px;
+  }
+
+  .pets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pet-card {
+    padding: 20px;
+  }
+}
+
