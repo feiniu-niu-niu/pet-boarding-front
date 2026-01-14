@@ -10,7 +10,7 @@ import { getAvatarUrl } from "../services/api";
 const DEFAULT_AVATAR = new URL("../img/defult.png", import.meta.url).href;
 
 interface HeaderProps {
-  onMenuClick?: (menuKey: string) => void;
+  onMenuClick?: (key: string) => void; // eslint-disable-line no-unused-vars
 }
 
 /**
@@ -68,7 +68,18 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           handleProfileClick();
           break;
         case "consumption":
-          navigate("/consumption");
+          // 根据用户角色跳转到不同页面
+          if (userInfo?.userType === 2) {
+            navigate("/store-orders");
+          } else {
+            navigate("/consumption");
+          }
+          break;
+        case "daily-care":
+          navigate("/daily-care");
+          break;
+        case "pet-daily":
+          navigate("/pet-daily");
           break;
         case "logout":
           handleLogout();
@@ -79,7 +90,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     }
   };
 
-  // 下拉菜单配置
+  // 根据用户角色确定菜单项标签
+  const consumptionLabel = userInfo?.userType === 2 ? "门店订单" : "我的消费";
+
+  // 根据用户角色构建菜单项
   const menuItems: MenuProps["items"] = [
     {
       key: "profile",
@@ -87,8 +101,26 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     },
     {
       key: "consumption",
-      label: "我的消费",
+      label: consumptionLabel,
     },
+    // 门店员工显示日常照料选项
+    ...(userInfo?.userType === 2
+      ? [
+          {
+            key: "daily-care",
+            label: "日常照料",
+          },
+        ]
+      : []),
+    // 宠物主人显示宠物日常选项
+    ...(userInfo?.userType !== 2
+      ? [
+          {
+            key: "pet-daily",
+            label: "宠物日常",
+          },
+        ]
+      : []),
     {
       type: "divider",
     },

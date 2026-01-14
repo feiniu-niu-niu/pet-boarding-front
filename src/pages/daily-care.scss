@@ -1,0 +1,101 @@
+.daily-care-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.daily-care-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.daily-care-header {
+  margin-bottom: 24px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #262626;
+    margin: 0;
+  }
+}
+
+.tabs-section {
+  background-color: #ffffff;
+  padding: 0 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+
+  .daily-care-tabs {
+    .ant-tabs-nav {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.table-section {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+
+  .ant-table {
+    .ant-table-thead > tr > th {
+      background-color: #fafafa;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .ant-table-tbody > tr > td {
+      padding: 16px;
+      vertical-align: middle;
+      text-align: center;
+    }
+  }
+}
+
+.pagination-section {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+// 模态框表单样式
+.care-log-form {
+  .form-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+
+    .form-col {
+      flex: 1;
+
+      .ant-form-item {
+        margin-bottom: 16px;
+      }
+    }
+  }
+
+  .ant-upload-select-picture-card {
+    width: 104px;
+    height: 104px;
+  }
+
+  .ant-upload-list-picture-card .ant-upload-list-item {
+    width: 104px;
+    height: 104px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .daily-care-content {
+    padding: 16px;
+  }
+
+  .care-log-form {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+}

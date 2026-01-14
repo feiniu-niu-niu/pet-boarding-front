@@ -21,6 +21,7 @@ export interface UserInfo {
   email?: string;
   avatarUrl?: string;
   userType?: number;
+  storeId?: number;
   petList?: any[]; // 宠物列表
   [key: string]: any;
 }

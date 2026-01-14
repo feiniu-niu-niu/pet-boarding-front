@@ -57,6 +57,35 @@ export interface BoardingOrderDto {
      */
     'userId'?: number;
 }
+export interface CareLogDto {
+    /**
+     * 照料项目
+     */
+    'careItem': string;
+    /**
+     * 详细记录
+     */
+    'details'?: string;
+    /**
+     * 日志日期（可选，不传则使用当前时间）
+     */
+    'logDate'?: string;
+    'logTime'?: LocalTime;
+    /**
+     * 外键，用户（员工）id
+     */
+    'operatorId'?: number;
+    /**
+     * 外键，关联订单
+     */
+    'orderId': string;
+}
+export interface LocalTime {
+    'hour'?: number;
+    'minute'?: number;
+    'nano'?: number;
+    'second'?: number;
+}
 export interface Pet {
     /**
      * 年龄
@@ -290,6 +319,48 @@ export const BoardingOrderManagementApiAxiosParamCreator = function (configurati
         },
         /**
          * 
+         * @summary 根据门店ID获取订单列表（门店员工视角，包含宠物信息）
+         * @param {number} storeId storeId
+         * @param {number} [orderStatus] orderStatus
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getOrderListByStoreIdUsingGET: async (storeId: number, orderStatus?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'storeId' is not null or undefined
+            assertParamExists('getOrderListByStoreIdUsingGET', 'storeId', storeId)
+            const localVarPath = `/boarding-order/storeOrderList`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (orderStatus !== undefined) {
+                localVarQueryParameter['orderStatus'] = orderStatus;
+            }
+
+            if (storeId !== undefined) {
+                localVarQueryParameter['storeId'] = storeId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary 查询订单状态/剩余时间
          * @param {string} orderId orderId
          * @param {*} [options] Override http request option.
@@ -308,6 +379,40 @@ export const BoardingOrderManagementApiAxiosParamCreator = function (configurati
             }
 
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 订单状态待支付->支付定金
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        payDepositUsingPOST: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('payDepositUsingPOST', 'orderId', orderId)
+            const localVarPath = `/boarding-order/payDeposit/{orderId}`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -360,6 +465,20 @@ export const BoardingOrderManagementApiFp = function(configuration?: Configurati
         },
         /**
          * 
+         * @summary 根据门店ID获取订单列表（门店员工视角，包含宠物信息）
+         * @param {number} storeId storeId
+         * @param {number} [orderStatus] orderStatus
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getOrderListByStoreIdUsingGET(storeId: number, orderStatus?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getOrderListByStoreIdUsingGET(storeId, orderStatus, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.getOrderListByStoreIdUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary 查询订单状态/剩余时间
          * @param {string} orderId orderId
          * @param {*} [options] Override http request option.
@@ -369,6 +488,19 @@ export const BoardingOrderManagementApiFp = function(configuration?: Configurati
             const localVarAxiosArgs = await localVarAxiosParamCreator.getOrderStatusUsingGET(orderId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.getOrderStatusUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 订单状态待支付->支付定金
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async payDepositUsingPOST(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.payDepositUsingPOST(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.payDepositUsingPOST']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -403,6 +535,17 @@ export const BoardingOrderManagementApiFactory = function (configuration?: Confi
         },
         /**
          * 
+         * @summary 根据门店ID获取订单列表（门店员工视角，包含宠物信息）
+         * @param {number} storeId storeId
+         * @param {number} [orderStatus] orderStatus
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getOrderListByStoreIdUsingGET(storeId: number, orderStatus?: number, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getOrderListByStoreIdUsingGET(storeId, orderStatus, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary 查询订单状态/剩余时间
          * @param {string} orderId orderId
          * @param {*} [options] Override http request option.
@@ -410,6 +553,16 @@ export const BoardingOrderManagementApiFactory = function (configuration?: Confi
          */
         getOrderStatusUsingGET(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<R> {
             return localVarFp.getOrderStatusUsingGET(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 订单状态待支付->支付定金
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        payDepositUsingPOST(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.payDepositUsingPOST(orderId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -443,6 +596,18 @@ export class BoardingOrderManagementApi extends BaseAPI {
 
     /**
      * 
+     * @summary 根据门店ID获取订单列表（门店员工视角，包含宠物信息）
+     * @param {number} storeId storeId
+     * @param {number} [orderStatus] orderStatus
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getOrderListByStoreIdUsingGET(storeId: number, orderStatus?: number, options?: RawAxiosRequestConfig) {
+        return BoardingOrderManagementApiFp(this.configuration).getOrderListByStoreIdUsingGET(storeId, orderStatus, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @summary 查询订单状态/剩余时间
      * @param {string} orderId orderId
      * @param {*} [options] Override http request option.
@@ -450,6 +615,338 @@ export class BoardingOrderManagementApi extends BaseAPI {
      */
     public getOrderStatusUsingGET(orderId: string, options?: RawAxiosRequestConfig) {
         return BoardingOrderManagementApiFp(this.configuration).getOrderStatusUsingGET(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 订单状态待支付->支付定金
+     * @param {string} orderId orderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public payDepositUsingPOST(orderId: string, options?: RawAxiosRequestConfig) {
+        return BoardingOrderManagementApiFp(this.configuration).payDepositUsingPOST(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * CareLogManagementApi - axios parameter creator
+ */
+export const CareLogManagementApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary 新增照料记录
+         * @param {CareLogDto} careLogDto careLogDto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addCareLogUsingPOST: async (careLogDto: CareLogDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'careLogDto' is not null or undefined
+            assertParamExists('addCareLogUsingPOST', 'careLogDto', careLogDto)
+            const localVarPath = `/care-log/add`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(careLogDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 查看照料记录详情
+         * @param {number} logId logId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCareLogDetailUsingGET: async (logId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'logId' is not null or undefined
+            assertParamExists('getCareLogDetailUsingGET', 'logId', logId)
+            const localVarPath = `/care-log/detail/{logId}`
+                .replace(`{${"logId"}}`, encodeURIComponent(String(logId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
+         * @param {number} storeId storeId
+         * @param {boolean} [isUploaded] isUploaded
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPetListByStoreIdUsingGET: async (storeId: number, isUploaded?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'storeId' is not null or undefined
+            assertParamExists('getPetListByStoreIdUsingGET', 'storeId', storeId)
+            const localVarPath = `/care-log/petList`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (isUploaded !== undefined) {
+                localVarQueryParameter['isUploaded'] = isUploaded;
+            }
+
+            if (storeId !== undefined) {
+                localVarQueryParameter['storeId'] = storeId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 根据宠物主人ID获取宠物列表（查看照料列表，返回字段与门店视角一致）
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPetListByUserIdUsingGET: async (userId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('getPetListByUserIdUsingGET', 'userId', userId)
+            const localVarPath = `/care-log/petListByUser`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (userId !== undefined) {
+                localVarQueryParameter['userId'] = userId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CareLogManagementApi - functional programming interface
+ */
+export const CareLogManagementApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CareLogManagementApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary 新增照料记录
+         * @param {CareLogDto} careLogDto careLogDto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async addCareLogUsingPOST(careLogDto: CareLogDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addCareLogUsingPOST(careLogDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CareLogManagementApi.addCareLogUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 查看照料记录详情
+         * @param {number} logId logId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getCareLogDetailUsingGET(logId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getCareLogDetailUsingGET(logId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CareLogManagementApi.getCareLogDetailUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
+         * @param {number} storeId storeId
+         * @param {boolean} [isUploaded] isUploaded
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPetListByStoreIdUsingGET(storeId: number, isUploaded?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPetListByStoreIdUsingGET(storeId, isUploaded, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CareLogManagementApi.getPetListByStoreIdUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 根据宠物主人ID获取宠物列表（查看照料列表，返回字段与门店视角一致）
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPetListByUserIdUsingGET(userId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPetListByUserIdUsingGET(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CareLogManagementApi.getPetListByUserIdUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CareLogManagementApi - factory interface
+ */
+export const CareLogManagementApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CareLogManagementApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary 新增照料记录
+         * @param {CareLogDto} careLogDto careLogDto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addCareLogUsingPOST(careLogDto: CareLogDto, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.addCareLogUsingPOST(careLogDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 查看照料记录详情
+         * @param {number} logId logId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCareLogDetailUsingGET(logId: number, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getCareLogDetailUsingGET(logId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
+         * @param {number} storeId storeId
+         * @param {boolean} [isUploaded] isUploaded
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPetListByStoreIdUsingGET(storeId: number, isUploaded?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getPetListByStoreIdUsingGET(storeId, isUploaded, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 根据宠物主人ID获取宠物列表（查看照料列表，返回字段与门店视角一致）
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPetListByUserIdUsingGET(userId: number, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getPetListByUserIdUsingGET(userId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * CareLogManagementApi - object-oriented interface
+ */
+export class CareLogManagementApi extends BaseAPI {
+    /**
+     * 
+     * @summary 新增照料记录
+     * @param {CareLogDto} careLogDto careLogDto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public addCareLogUsingPOST(careLogDto: CareLogDto, options?: RawAxiosRequestConfig) {
+        return CareLogManagementApiFp(this.configuration).addCareLogUsingPOST(careLogDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 查看照料记录详情
+     * @param {number} logId logId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getCareLogDetailUsingGET(logId: number, options?: RawAxiosRequestConfig) {
+        return CareLogManagementApiFp(this.configuration).getCareLogDetailUsingGET(logId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
+     * @param {number} storeId storeId
+     * @param {boolean} [isUploaded] isUploaded
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPetListByStoreIdUsingGET(storeId: number, isUploaded?: boolean, options?: RawAxiosRequestConfig) {
+        return CareLogManagementApiFp(this.configuration).getPetListByStoreIdUsingGET(storeId, isUploaded, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 根据宠物主人ID获取宠物列表（查看照料列表，返回字段与门店视角一致）
+     * @param {number} userId userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPetListByUserIdUsingGET(userId: number, options?: RawAxiosRequestConfig) {
+        return CareLogManagementApiFp(this.configuration).getPetListByUserIdUsingGET(userId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

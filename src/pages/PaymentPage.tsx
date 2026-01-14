@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, Descriptions, Button, message, Tag, Space } from "antd";
+import { Card, Descriptions, Button, message, Tag, Space, Modal } from "antd";
 import { QRCodeSVG } from "qrcode.react";
 import dayjs from "dayjs";
 import Header from "../components/Header";
 import "./paymentPage.scss";
-import { getOrderStatus } from "../services/api";
+import { getOrderStatus, payDeposit } from "../services/api";
 import { useStore } from "../zustand/store";
 import { isSuccess } from "../utils/response";
 
@@ -30,10 +30,17 @@ const PaymentPage: React.FC = () => {
 
   // 剩余支付秒数
   const [remainSeconds, setRemainSeconds] = useState<number | null>(null);
+  
+  // 支付状态
+  const [isPaid, setIsPaid] = useState(false);
+  
+  // 模拟支付的定时器引用
+  const autoPayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasTriggeredAutoPayRef = useRef(false);
 
   const statusTag = useMemo(() => {
     if (!order) return null;
-    const paid = order.deposit_paid === 1;
+    const paid = isPaid || order.deposit_paid === 1;
     if (paid) {
       return <Tag color="green">已支付定金</Tag>;
     }
@@ -41,7 +48,7 @@ const PaymentPage: React.FC = () => {
       return <Tag color="orange">待支付</Tag>;
     }
     return <Tag>待处理</Tag>;
-  }, [order]);
+  }, [order, isPaid]);
 
   useEffect(() => {
     if (!order) {
@@ -117,7 +124,7 @@ const PaymentPage: React.FC = () => {
 
   // 每 30s 去后端校验一次订单状态（是否已支付 / 是否过期）
   useEffect(() => {
-    if (!order?.orderId) return;
+    if (!order?.orderId || isPaid) return;
 
     const check = async () => {
       try {
@@ -143,7 +150,53 @@ const PaymentPage: React.FC = () => {
     check();
     const intervalId = setInterval(check, 30000);
     return () => clearInterval(intervalId);
-  }, [order?.orderId, setOrderCountdown]);
+  }, [order?.orderId, setOrderCountdown, isPaid]);
+
+  // 模拟支付：10秒后自动支付
+  useEffect(() => {
+    if (!order?.orderId || isPaid || hasTriggeredAutoPayRef.current) return;
+    
+    // 如果订单状态不是待支付（status === 1），不触发自动支付
+    if (order.orderStatus !== 1) return;
+
+    autoPayTimerRef.current = setTimeout(async () => {
+      if (hasTriggeredAutoPayRef.current || isPaid) return;
+      hasTriggeredAutoPayRef.current = true;
+
+      try {
+        // 调用支付接口
+        const result = await payDeposit(order.orderId);
+        
+        if (isSuccess(result.code)) {
+          setIsPaid(true);
+          
+          // 显示支付成功提示
+          Modal.success({
+            title: '支付成功',
+            content: '定金支付成功！订单状态已更新。',
+            onOk: () => {
+              // 支付成功后可以跳转到订单列表或返回
+              navigate('/consumption?tab=2');
+            },
+          });
+        } else {
+          message.error(result.msg || '支付失败，请重试');
+          hasTriggeredAutoPayRef.current = false;
+        }
+      } catch (error: any) {
+        console.error('支付失败:', error);
+        const errorMsg = error?.response?.data?.msg || error?.message || '支付失败，请重试';
+        message.error(errorMsg);
+        hasTriggeredAutoPayRef.current = false;
+      }
+    }, 10000); // 10秒后触发
+
+    return () => {
+      if (autoPayTimerRef.current) {
+        clearTimeout(autoPayTimerRef.current);
+      }
+    };
+  }, [order?.orderId, order?.orderStatus, isPaid, navigate]);
 
   if (!order) {
     return null;

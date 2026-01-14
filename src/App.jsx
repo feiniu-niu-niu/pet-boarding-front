@@ -7,6 +7,9 @@ import StoreDetail from "./pages/StoreDetail";
 import BookingPage from "./pages/BookingPage";
 import PaymentPage from "./pages/PaymentPage";
 import Consumption from "./pages/Consumption";
+import StoreOrders from "./pages/StoreOrders";
+import DailyCare from "./pages/DailyCare";
+import PetDaily from "./pages/PetDaily";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
@@ -55,6 +58,30 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Consumption />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/store-orders",
+    element: (
+      <ProtectedRoute>
+        <StoreOrders />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/daily-care",
+    element: (
+      <ProtectedRoute>
+        <DailyCare />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pet-daily",
+    element: (
+      <ProtectedRoute>
+        <PetDaily />
       </ProtectedRoute>
     ),
   },

@@ -58,6 +58,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onSuccess }) => 
               username: data.username,
               userType: data.userType,
               avatarUrl: data.avatarUrl,
+              storeId: data.storeId, // 保存门店ID
             };
             setUserInfo(userData);
           }

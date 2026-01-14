@@ -6,7 +6,10 @@ common.ts
 configuration.ts
 docs/BoardingOrderDto.md
 docs/BoardingOrderManagementApi.md
+docs/CareLogDto.md
+docs/CareLogManagementApi.md
 docs/FileUploadManagementApi.md
+docs/LocalTime.md
 docs/PetManagementApi.md
 docs/Pet对象.md
 docs/R.md

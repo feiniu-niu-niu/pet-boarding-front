@@ -10,20 +10,22 @@ import {
   StoreManagementApi,
   ServiceItemControllerApi,
   BoardingOrderManagementApi,
+  CareLogManagementApi,
   Configuration,
   type User,
   type UpdateUserDto,
   type Pet,
   type R,
   type SearchStoreDto,
-  type BoardingOrderDto
+  type BoardingOrderDto,
+  type CareLogDto
 } from '../../generated-api';
 import { isSuccess } from '../utils/response';
 
 /**
  * 获取后端基础 URL（用于图片资源）
  */
-const getBackendBaseUrl = (): string => {
+export const getBackendBaseUrl = (): string => {
   return import.meta.env.DEV 
     ? 'http://localhost:8080'  // 开发环境直接使用完整 URL（图片资源不走代理）
     : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080');
@@ -135,6 +137,11 @@ const getServiceItemApi = () => {
 // 获取订单管理 API 实例 - 每次调用时获取最新配置
 const getBoardingOrderApi = () => {
   return new BoardingOrderManagementApi(getApiConfiguration());
+};
+
+// 获取照料日志管理 API 实例 - 每次调用时获取最新配置
+const getCareLogApi = () => {
+  return new CareLogManagementApi(getApiConfiguration());
 };
 
 // 获取文件上传 API 实例 - 每次调用时获取最新配置
@@ -988,6 +995,37 @@ export const getOrderStatus = async (orderId: string): Promise<R> => {
 };
 
 /**
+ * 支付定金
+ * @param orderId 订单ID
+ */
+export const payDeposit = async (orderId: string): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const orderApi = getBoardingOrderApi();
+    const response = await orderApi.payDepositUsingPOST(orderId, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('支付定金失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
  * 根据订单状态获取订单列表
  * @param orderStatus 订单状态：1-待确认, 2-已预约(定金已付), 3-寄养中(已入托), 4-待结算, 5-已完成, 0-已取消
  * @returns 订单列表结果
@@ -1027,6 +1065,173 @@ export const getOrderListByStatus = async (orderStatus: number): Promise<R> => {
     return response.data;
   } catch (error: any) {
     console.error('获取订单列表失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 根据门店ID获取订单列表（门店员工视角）
+ * @param storeId 门店ID
+ * @param orderStatus 订单状态（可选）：1-待确认, 2-已预约(定金已付), 3-寄养中(已入托), 4-待结算, 5-已完成, 0-已取消
+ * @returns 订单列表结果
+ */
+export const getOrderListByStoreId = async (storeId: number, orderStatus?: number): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    // 使用生成的 API 调用 storeOrderList 接口
+    const orderApi = getBoardingOrderApi();
+    const response = await orderApi.getOrderListByStoreIdUsingGET(storeId, orderStatus, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('获取门店订单列表失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
+ * @param storeId 门店ID
+ * @param isUploaded 是否已上传（可选）：true-已上传, false-待上传, undefined-全部
+ * @returns 宠物列表结果
+ */
+export const getPetListByStoreId = async (storeId: number, isUploaded?: boolean): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    // 使用生成的 API 调用 petList 接口
+    const careLogApi = getCareLogApi();
+    const response = await careLogApi.getPetListByStoreIdUsingGET(storeId, isUploaded, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('获取宠物列表失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 获取照料记录详情
+ * @param logId 照料日志ID
+ * @returns 照料记录详情
+ */
+export const getCareLogDetail = async (logId: number): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    // 使用生成的 API 调用 getCareLogDetail 接口
+    const careLogApi = getCareLogApi();
+    const response = await careLogApi.getCareLogDetailUsingGET(logId, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('获取照料记录详情失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 根据宠物主人ID获取宠物列表（查看照料列表）
+ * @param userId 宠物主人ID
+ * @returns 宠物列表结果
+ */
+export const getPetListByUserId = async (userId: number): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    // 使用生成的 API 调用 getPetListByUserId 接口
+    const careLogApi = getCareLogApi();
+    const response = await careLogApi.getPetListByUserIdUsingGET(userId, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('获取宠物列表失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 新增照料记录
+ * @param careLogDto 照料记录数据
+ * @returns 提交结果
+ */
+export const addCareLog = async (careLogDto: CareLogDto): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    // 使用生成的 API 调用 addCareLog 接口（使用请求体）
+    const careLogApi = getCareLogApi();
+    const response = await careLogApi.addCareLogUsingPOST(careLogDto, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('提交照料日志失败:', error);
     const errorWithMsg = error;
     if (error?.response?.data) {
       if (!error.response.data.msg && error.response.data.message) {
