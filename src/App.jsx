@@ -6,6 +6,7 @@ import StoreList from "./pages/StoreList";
 import StoreDetail from "./pages/StoreDetail";
 import BookingPage from "./pages/BookingPage";
 import PaymentPage from "./pages/PaymentPage";
+import SettlementPaymentPage from "./pages/SettlementPaymentPage";
 import Consumption from "./pages/Consumption";
 import StoreOrders from "./pages/StoreOrders";
 import DailyCare from "./pages/DailyCare";
@@ -45,6 +46,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <PaymentPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/settlement-payment",
+    element: (
+      <ProtectedRoute>
+        <SettlementPaymentPage />
       </ProtectedRoute>
     ),
   },

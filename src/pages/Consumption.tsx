@@ -304,8 +304,8 @@ const Consumption: React.FC = () => {
         message.error("获取订单信息失败，请稍后重试");
       }
     } else if (order.orderStatus === 4 && order.orderId) {
-      // 待结算状态：跳转到支付页面（结算支付，不显示倒计时）
-      navigate("/payment", {
+      // 待结算状态：跳转到结算支付页面（不显示倒计时）
+      navigate("/settlement-payment", {
         state: {
           order: {
             orderId: order.orderId,
@@ -315,7 +315,6 @@ const Consumption: React.FC = () => {
             create_time: order.createTime,
             orderStatus: order.orderStatus,
             deposit_paid: order.depositPaid,
-            isSettlementPayment: true, // 标记为结算支付
           },
         },
       });
@@ -340,23 +339,6 @@ const Consumption: React.FC = () => {
     setDetailModalOpen(true);
   }, []);
   
-  // 处理门店员工点击"主人接回"按钮
-  const handleCheckoutClick = useCallback(async (order: OrderInfo) => {
-    if (!order.orderId) {
-      message.error("订单信息不完整");
-      return;
-    }
-    
-    // TODO: 调用后端接口，改变订单状态
-    // 示例：await checkoutOrder(order.orderId);
-    message.info("主人接回功能开发中，等待后端接口...");
-    
-    // 接口调用成功后，刷新订单列表
-    // const status = ORDER_STATUS_CONFIG[parseInt(activeTab)]?.status;
-    // if (status !== undefined) {
-    //   await loadOrderList(status);
-    // }
-  }, []);
 
   // 处理提交评价
   const handleSubmitReview = async () => {
@@ -444,7 +426,6 @@ const Consumption: React.FC = () => {
     const review = order.review;
     const isPending = orderStatus === 1; // 待确认状态
     const isPendingSettlement = orderStatus === 4; // 待结算状态
-    const isBoarding = orderStatus === 3; // 寄养中状态
     const isCompleted = orderStatus === 5; // 已完成状态
     const isClickable = isPending || isPendingSettlement; // 待确认和待结算状态可点击卡片
     const remainSeconds = countdowns[order.orderId || ""] ?? null;
@@ -453,10 +434,6 @@ const Consumption: React.FC = () => {
     // 判断已完成订单是否已评价
     const hasReview = isCompleted && !!review;
     const canReview = isCompleted && !review; // 已完成且未评价的可以评价
-    
-    // 在函数内部获取用户信息，确保每次渲染都能获取最新的用户类型
-    const currentUserInfo = getUserInfo();
-    const isStoreEmployeeCurrent = currentUserInfo?.userType === 2;
 
     return (
       <Card 

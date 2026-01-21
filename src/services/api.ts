@@ -1194,6 +1194,36 @@ export const checkoutOrder = async (orderId: string): Promise<R> => {
 };
 
 /**
+ * 获取待结算订单的应付金额
+ * @param orderId 订单ID
+ */
+export const getSettlementAmount = async (orderId: string): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const orderApi = getBoardingOrderApi();
+    const response = await orderApi.getSettlementAmountUsingGET(orderId, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
  * 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
  * @param storeId 门店ID
  * @param isUploaded 是否已上传（可选）：true-已上传, false-待上传, undefined-全部
