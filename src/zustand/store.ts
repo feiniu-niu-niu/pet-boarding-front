@@ -3,9 +3,10 @@ import { devtools, persist } from 'zustand/middleware';
 import { createPetSlice, PetSlice } from './slice/createPetSlice';
 import { createUserSlice, UserSlice } from './slice/createUserSlice';
 import { createOrderCountdownSlice, OrderCountdownSlice } from './slice/createOrderCountdownSlice';
+import { createTreatmentApprovalSlice, TreatmentApprovalSlice } from './slice/createTreatmentApprovalSlice';
 
 // 合并后的 Store 类型
-export type Store = PetSlice & UserSlice & OrderCountdownSlice;
+export type Store = PetSlice & UserSlice & OrderCountdownSlice & TreatmentApprovalSlice;
 
 // 创建统一的 store，合并所有 slice
 export const useStore = create<Store>()(
@@ -15,6 +16,7 @@ export const useStore = create<Store>()(
         ...createPetSlice(...a),
         ...createUserSlice(...a),
         ...createOrderCountdownSlice(...a),
+        ...createTreatmentApprovalSlice(...a),
       }),
       {
         name: 'order-countdown-storage', // localStorage 键名

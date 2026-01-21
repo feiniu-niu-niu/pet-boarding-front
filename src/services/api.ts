@@ -11,6 +11,9 @@ import {
   ServiceItemControllerApi,
   BoardingOrderManagementApi,
   CareLogManagementApi,
+  AbnormalRecordManagementApi,
+  TreatmentRecordManagementApi,
+  ReviewManagementApi,
   Configuration,
   type User,
   type UpdateUserDto,
@@ -18,7 +21,11 @@ import {
   type R,
   type SearchStoreDto,
   type BoardingOrderDto,
-  type CareLogDto
+  type CareLogDto,
+  type AddAbnormalRecordDto,
+  type TreatmentDecisionDto,
+  type AddTreatmentRecordDto,
+  type AddReviewDto
 } from '../../generated-api';
 import { isSuccess } from '../utils/response';
 
@@ -142,6 +149,21 @@ const getBoardingOrderApi = () => {
 // 获取照料日志管理 API 实例 - 每次调用时获取最新配置
 const getCareLogApi = () => {
   return new CareLogManagementApi(getApiConfiguration());
+};
+
+// 获取异常记录管理 API 实例 - 每次调用时获取最新配置
+const getAbnormalRecordApi = () => {
+  return new AbnormalRecordManagementApi(getApiConfiguration());
+};
+
+// 获取治疗记录管理 API 实例 - 每次调用时获取最新配置
+const getTreatmentRecordApi = () => {
+  return new TreatmentRecordManagementApi(getApiConfiguration());
+};
+
+// 获取评价管理 API 实例 - 每次调用时获取最新配置
+const getReviewManagementApi = () => {
+  return new ReviewManagementApi(getApiConfiguration());
 };
 
 // 获取文件上传 API 实例 - 每次调用时获取最新配置
@@ -1110,6 +1132,68 @@ export const getOrderListByStoreId = async (storeId: number, orderStatus?: numbe
 };
 
 /**
+ * 门店员工点击入托
+ * @param orderId 订单ID
+ * @returns 操作结果
+ */
+export const checkinOrder = async (orderId: string): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const orderApi = getBoardingOrderApi();
+    const response = await orderApi.checkInUsingPOST(orderId, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 门店员工点击主人接回
+ * @param orderId 订单ID
+ * @returns 操作结果，包含待支付金额等信息
+ */
+export const checkoutOrder = async (orderId: string): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const orderApi = getBoardingOrderApi();
+    const response = await orderApi.ownerPickupUsingPOST(orderId, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
  * 根据门店ID获取宠物列表（区分今日已上传和今日待上传日志）
  * @param storeId 门店ID
  * @param isUploaded 是否已上传（可选）：true-已上传, false-待上传, undefined-全部
@@ -1232,6 +1316,272 @@ export const addCareLog = async (careLogDto: CareLogDto): Promise<R> => {
     return response.data;
   } catch (error: any) {
     console.error('提交照料日志失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 新增异常记录
+ * @param dto 异常记录数据
+ * @returns 提交结果
+ */
+export const addAbnormalRecord = async (dto: AddAbnormalRecordDto): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const abnormalRecordApi = getAbnormalRecordApi();
+    const response = await abnormalRecordApi.addUsingPOST(dto, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('提交异常记录失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 主人对治疗审批做决定
+ * @param dto 决策数据
+ * @returns 提交结果
+ */
+export const decideTreatmentApproval = async (dto: TreatmentDecisionDto): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const abnormalRecordApi = getAbnormalRecordApi();
+    const response = await abnormalRecordApi.decideUsingPOST(dto, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('提交治疗审批决策失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 查询当前用户的待处理审批（登录后主动查询）
+ * @returns 待处理审批列表
+ */
+export const getPendingTreatmentApprovals = async (): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    // 获取用户信息
+    const userInfoStr = localStorage.getItem('userInfo');
+    if (!userInfoStr) {
+      throw new Error('用户信息不存在，请先登录');
+    }
+    
+    let userId: number;
+    try {
+      const userInfo = JSON.parse(userInfoStr);
+      userId = userInfo.userId;
+      if (!userId) {
+        throw new Error('用户ID不存在');
+      }
+    } catch (error) {
+      throw new Error('解析用户信息失败，请重新登录');
+    }
+
+    // 使用 axios 直接调用（因为可能还没有生成到 OpenAPI）
+    const baseUrl = import.meta.env.DEV 
+      ? '/api'  // 开发环境使用代理
+      : (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080');
+    
+    const response = await axios.get(`${baseUrl}/abnormal-record/treatment-approval/pending`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      params: {
+        userId: userId,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    console.error('查询待处理审批失败:', error);
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 查询门店需要治疗的宠物列表（可根据审批状态过滤：0-待处理，1-已同意，2-已拒绝，3-已过期，不传则返回所有状态）
+ * @param storeId 门店ID
+ * @param approvalStatus 审批状态：0-待处理，1-已同意，2-已拒绝，3-已过期，不传则返回所有状态
+ * @returns 异常记录列表结果
+ */
+export const getAbnormalRecordList = async (storeId: number, approvalStatus?: number): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const orderApi = getBoardingOrderApi();
+    const response = await orderApi.getTreatmentPendingOrdersUsingGET(storeId, approvalStatus, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 新增治疗记录及费用（门店员工操作）
+ * @param dto 治疗记录DTO
+ * @returns 新增结果
+ */
+export const addTreatmentRecord = async (dto: AddTreatmentRecordDto): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const treatmentApi = getTreatmentRecordApi();
+    const response = await treatmentApi.addTreatmentRecordUsingPOST(dto, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 获取评价订单列表（宠物主人操作）
+ * @param userId 用户ID
+ * @param reviewed 是否已评价：true-已评价，false-未评价，不传则返回所有
+ * @returns 评价订单列表结果
+ */
+export const getReviewOrders = async (userId: number, reviewed?: boolean): Promise<R> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token 不存在，请先登录');
+    }
+
+    const reviewApi = getReviewManagementApi();
+    const response = await reviewApi.getReviewOrdersUsingGET(userId, reviewed, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    // 返回统一格式的响应
+    if (response.data) {
+      return response.data as R;
+    }
+    return response as any;
+  } catch (error: any) {
+    const errorWithMsg = error;
+    if (error?.response?.data) {
+      if (!error.response.data.msg && error.response.data.message) {
+        error.response.data.msg = error.response.data.message;
+      }
+    }
+    throw errorWithMsg;
+  }
+};
+
+/**
+ * 提交订单评价（宠物主人操作）
+ * @param orderId 订单ID
+ * @param rating 评分（1-5）
+ * @param comment 评价内容
+ * @returns 提交结果
+ */
+export const submitOrderReview = async (orderId: string, rating: number, comment: string): Promise<R> => {
+  try {
+    // 获取用户信息
+    const userInfoStr = localStorage.getItem('userInfo');
+    if (!userInfoStr) {
+      throw new Error('用户信息不存在，请先登录');
+    }
+    const userInfo = JSON.parse(userInfoStr);
+    const userId = userInfo?.userId;
+    if (!userId) {
+      throw new Error('用户ID不存在，请先登录');
+    }
+
+    // 构建 AddReviewDto
+    const dto: AddReviewDto = {
+      orderId,
+      rating,
+      comment: comment || undefined,
+      userId,
+    };
+
+    // 使用生成的 API 调用
+    const reviewApi = getReviewManagementApi();
+    const response = await reviewApi.addReviewUsingPOST(dto);
+
+    // 返回统一格式的响应
+    if (response.data) {
+      return response.data as R;
+    }
+    return response as any;
+  } catch (error: any) {
     const errorWithMsg = error;
     if (error?.response?.data) {
       if (!error.response.data.msg && error.response.data.message) {

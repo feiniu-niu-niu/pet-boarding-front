@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Tabs, Card, Empty, message, Spin, Tag } from "antd";
+import { Tabs, Card, Empty, message, Spin, Tag, Modal, Form, Input, Rate, Button, Descriptions } from "antd";
 import type { TabsProps } from "antd";
 import Header from "../components/Header";
-import { getOrderListByStatus, getAvatarUrl, getOrderStatus } from "../services/api";
+import { getOrderListByStatus, getAvatarUrl, getOrderStatus, submitOrderReview, getReviewOrders } from "../services/api";
 import { isSuccess } from "../utils/response";
+import { getUserInfo } from "../utils/auth";
 import { useStore } from "../zustand/store";
 import dayjs from "dayjs";
 import "./consumption.scss";
+
+const { TextArea } = Input;
 
 // 格式化倒计时显示
 const formatCountdown = (seconds: number): string => {
@@ -79,6 +82,17 @@ interface PetInfo {
   [key: string]: any;
 }
 
+// 评价信息接口
+interface ReviewInfo {
+  reviewId?: number;
+  orderId?: string;
+  userId?: number;
+  rating?: number;
+  comment?: string;
+  createTime?: string;
+  [key: string]: any;
+}
+
 // 订单信息接口
 interface OrderInfo {
   orderId?: string;
@@ -99,6 +113,7 @@ interface OrderInfo {
   checkoutTime?: string;
   petInfo?: PetInfo;
   storeName?: string;
+  review?: ReviewInfo; // 评价信息
   [key: string]: any;
 }
 
@@ -115,6 +130,12 @@ const Consumption: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [orderList, setOrderList] = useState<OrderInfo[]>([]);
   const [countdowns, setCountdowns] = useState<Record<string, number>>({});
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [currentReviewOrder, setCurrentReviewOrder] = useState<OrderInfo | null>(null);
+  const [currentDetailOrder, setCurrentDetailOrder] = useState<OrderInfo | null>(null);
+  const [reviewForm] = Form.useForm();
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   // 使用 zustand store 管理倒计时
   const { setOrderCountdown, getOrderRemainSeconds, updateOrderCountdown } = useStore();
@@ -132,7 +153,7 @@ const Consumption: React.FC = () => {
     });
 
   // 加载订单列表
-  const loadOrderList = async (status: number) => {
+  const loadOrderList = useCallback(async (status: number) => {
     setLoading(true);
     try {
       const result = await getOrderListByStatus(status);
@@ -147,30 +168,69 @@ const Consumption: React.FC = () => {
           orders = Array.isArray(listData) ? (listData as OrderInfo[]) : [];
         }
         
+        // 如果是已完成状态的订单，需要补充评价信息
+        if (status === 5) {
+          const currentUserInfo = getUserInfo();
+          const currentUserId = currentUserInfo?.userId;
+          if (currentUserId) {
+            try {
+              // 获取所有已评价的订单
+              const reviewedResult = await getReviewOrders(currentUserId, true);
+              
+              if (isSuccess(reviewedResult.code)) {
+                const reviewedOrders = Array.isArray(reviewedResult.data) ? reviewedResult.data : [];
+                
+                // 创建已评价订单的映射（以orderId为key）
+                const reviewedOrderMap = new Map<string, any>();
+                reviewedOrders.forEach((reviewedOrder: any) => {
+                  if (reviewedOrder.orderId && reviewedOrder.review) {
+                    reviewedOrderMap.set(reviewedOrder.orderId, reviewedOrder.review);
+                  }
+                });
+                
+                // 合并评价信息到订单列表
+                orders = orders.map((order) => {
+                  if (order.orderId && reviewedOrderMap.has(order.orderId)) {
+                    return {
+                      ...order,
+                      review: reviewedOrderMap.get(order.orderId),
+                    };
+                  }
+                  return order;
+                });
+              }
+            } catch (error) {
+              // 如果获取评价信息失败，不影响订单列表的显示
+              console.error("获取评价信息失败:", error);
+            }
+          }
+        }
+        
         setOrderList(orders);
         
         // 初始化待确认订单的倒计时
         orders.forEach((order) => {
           if (order.orderStatus === 1 && order.orderId) {
+            const orderId = order.orderId; // 确保类型为 string
             // 从后端获取订单状态以获取准确的剩余秒数
-            getOrderStatus(order.orderId)
+            getOrderStatus(orderId)
               .then((statusResult) => {
                 if (isSuccess(statusResult.code)) {
                   const statusData = statusResult.data as any;
                   if (statusData.expire_seconds !== undefined) {
                     // 使用后端返回的剩余秒数，计算过期时间
                     const expireTime = dayjs().add(statusData.expire_seconds, 'second').toISOString();
-                    setOrderCountdown(order.orderId, expireTime, statusData.expire_seconds);
+                    setOrderCountdown(orderId, expireTime, statusData.expire_seconds);
                   } else if (order.expireTime) {
                     // 如果没有返回剩余秒数，基于过期时间计算
-                    setOrderCountdown(order.orderId, order.expireTime);
+                    setOrderCountdown(orderId, order.expireTime);
                   }
                 }
               })
               .catch(() => {
                 // 如果获取失败，使用过期时间计算
                 if (order.expireTime) {
-                  setOrderCountdown(order.orderId, order.expireTime);
+                  setOrderCountdown(orderId, order.expireTime);
                 }
               });
           }
@@ -191,7 +251,7 @@ const Consumption: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setOrderCountdown]);
 
   // 更新所有倒计时显示
   useEffect(() => {
@@ -215,10 +275,12 @@ const Consumption: React.FC = () => {
     return () => clearInterval(timer);
   }, [orderList, getOrderRemainSeconds, updateOrderCountdown]);
 
-  // 处理订单卡片点击（仅待确认状态可点击跳转到支付页面）
+  // 处理订单卡片点击
+  // - 待确认状态（status 1）：跳转到支付页面（定金支付）
+  // - 待结算状态（status 4）：跳转到支付页面（结算支付）
   const handleOrderClick = useCallback(async (order: OrderInfo) => {
     if (order.orderStatus === 1 && order.orderId) {
-      // 获取订单状态以获取支付信息
+      // 待确认状态：跳转到支付页面（定金支付）
       try {
         const statusResult = await getOrderStatus(order.orderId);
         if (isSuccess(statusResult.code)) {
@@ -238,11 +300,117 @@ const Consumption: React.FC = () => {
             },
           });
         }
-      } catch (error) {
+      } catch {
         message.error("获取订单信息失败，请稍后重试");
       }
+    } else if (order.orderStatus === 4 && order.orderId) {
+      // 待结算状态：跳转到支付页面（结算支付，不显示倒计时）
+      navigate("/payment", {
+        state: {
+          order: {
+            orderId: order.orderId,
+            totalPrice: order.totalAmount,
+            finalAmount: order.finalAmount || order.totalAmount, // 使用最终金额
+            depositAmount: order.depositAmount,
+            create_time: order.createTime,
+            orderStatus: order.orderStatus,
+            deposit_paid: order.depositPaid,
+            isSettlementPayment: true, // 标记为结算支付
+          },
+        },
+      });
     }
+    // 已完成状态的订单不再通过点击卡片触发评价，而是通过按钮
   }, [navigate]);
+  
+  // 处理点击评价按钮
+  const handleReviewButtonClick = useCallback((order: OrderInfo) => {
+    setCurrentReviewOrder(order);
+    reviewForm.resetFields();
+    reviewForm.setFieldsValue({
+      rating: 5, // 默认5星
+      comment: "",
+    });
+    setReviewModalOpen(true);
+  }, [reviewForm]);
+  
+  // 处理点击查看详情按钮
+  const handleViewDetailClick = useCallback((order: OrderInfo) => {
+    setCurrentDetailOrder(order);
+    setDetailModalOpen(true);
+  }, []);
+  
+  // 处理门店员工点击"主人接回"按钮
+  const handleCheckoutClick = useCallback(async (order: OrderInfo) => {
+    if (!order.orderId) {
+      message.error("订单信息不完整");
+      return;
+    }
+    
+    // TODO: 调用后端接口，改变订单状态
+    // 示例：await checkoutOrder(order.orderId);
+    message.info("主人接回功能开发中，等待后端接口...");
+    
+    // 接口调用成功后，刷新订单列表
+    // const status = ORDER_STATUS_CONFIG[parseInt(activeTab)]?.status;
+    // if (status !== undefined) {
+    //   await loadOrderList(status);
+    // }
+  }, []);
+
+  // 处理提交评价
+  const handleSubmitReview = async () => {
+    try {
+      const values = await reviewForm.validateFields();
+      if (!currentReviewOrder?.orderId) {
+        message.error("订单信息不完整");
+        return;
+      }
+
+      setSubmittingReview(true);
+      const result = await submitOrderReview(
+        currentReviewOrder.orderId,
+        values.rating,
+        values.comment || ""
+      );
+
+      if (isSuccess(result.code)) {
+        message.success("评价提交成功");
+        setReviewModalOpen(false);
+        setCurrentReviewOrder(null);
+        reviewForm.resetFields();
+        // 刷新当前订单列表
+        const status = ORDER_STATUS_CONFIG[parseInt(activeTab)]?.status;
+        if (status !== undefined) {
+          await loadOrderList(status);
+        }
+      } else {
+        message.error(result.msg || "评价提交失败，请稍后重试");
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.msg ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "评价提交失败，请稍后重试";
+      message.error(errorMsg);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  // 处理关闭评价弹窗
+  const handleReviewModalClose = () => {
+    setReviewModalOpen(false);
+    setCurrentReviewOrder(null);
+    reviewForm.resetFields();
+  };
+  
+  // 处理关闭详情弹窗
+  const handleDetailModalClose = () => {
+    setDetailModalOpen(false);
+    setCurrentDetailOrder(null);
+  };
 
   // 标签页切换处理
   const handleTabChange = (key: string) => {
@@ -264,7 +432,7 @@ const Consumption: React.FC = () => {
       setActiveTab(tabFromUrl);
       loadOrderList(status);
     }
-  }, [searchParams]);
+  }, [searchParams, loadOrderList]);
 
 
   // 渲染订单卡片
@@ -273,16 +441,29 @@ const Consumption: React.FC = () => {
     const statusLabel = statusConfig?.label || "未知状态";
     const orderStatus = order.orderStatus ?? 0;
     const petInfo = order.petInfo;
+    const review = order.review;
     const isPending = orderStatus === 1; // 待确认状态
+    const isPendingSettlement = orderStatus === 4; // 待结算状态
+    const isBoarding = orderStatus === 3; // 寄养中状态
+    const isCompleted = orderStatus === 5; // 已完成状态
+    const isClickable = isPending || isPendingSettlement; // 待确认和待结算状态可点击卡片
     const remainSeconds = countdowns[order.orderId || ""] ?? null;
     const showCountdown = isPending && remainSeconds !== null;
+    
+    // 判断已完成订单是否已评价
+    const hasReview = isCompleted && !!review;
+    const canReview = isCompleted && !review; // 已完成且未评价的可以评价
+    
+    // 在函数内部获取用户信息，确保每次渲染都能获取最新的用户类型
+    const currentUserInfo = getUserInfo();
+    const isStoreEmployeeCurrent = currentUserInfo?.userType === 2;
 
     return (
       <Card 
         key={order.orderId} 
-        className={`order-card ${isPending ? 'order-card-clickable' : ''}`}
-        hoverable={isPending}
-        onClick={() => isPending && handleOrderClick(order)}
+        className={`order-card ${isClickable ? 'order-card-clickable' : ''}`}
+        hoverable={isClickable}
+        onClick={() => isClickable && handleOrderClick(order)}
       >
         <div className="order-header">
           <div className="order-id">订单号：{order.orderId || "-"}</div>
@@ -429,6 +610,35 @@ const Consumption: React.FC = () => {
             </div>
           )}
         </div>
+        
+        {/* 操作按钮区域 */}
+      
+        {/* 已完成订单的操作 */}
+        {isCompleted && (canReview || hasReview) && (
+          <div className="order-actions" style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #e8e8e8', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            {canReview && (
+              <Button
+                type="primary"
+                onClick={(e) => {
+                  e.stopPropagation(); // 阻止事件冒泡到卡片点击
+                  handleReviewButtonClick(order);
+                }}
+              >
+                评价
+              </Button>
+            )}
+            {hasReview && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation(); // 阻止事件冒泡到卡片点击
+                  handleViewDetailClick(order);
+                }}
+              >
+                查看详情
+              </Button>
+            )}
+          </div>
+        )}
       </Card>
     );
   };
@@ -465,6 +675,169 @@ const Consumption: React.FC = () => {
           </Spin>
         </div>
       </div>
+
+      {/* 评价弹窗 */}
+      <Modal
+        title="订单评价"
+        open={reviewModalOpen}
+        onCancel={handleReviewModalClose}
+        footer={[
+          <Button key="cancel" onClick={handleReviewModalClose}>
+            取消
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={submittingReview}
+            onClick={handleSubmitReview}
+          >
+            提交评价
+          </Button>,
+        ]}
+        width={600}
+      >
+        {currentReviewOrder && (
+          <Form form={reviewForm} layout="vertical">
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 8 }}>
+                <strong>订单号：</strong>
+                {currentReviewOrder.orderId}
+              </div>
+              {currentReviewOrder.storeName && (
+                <div style={{ marginBottom: 8 }}>
+                  <strong>门店名称：</strong>
+                  {currentReviewOrder.storeName}
+                </div>
+              )}
+              {currentReviewOrder.petInfo && (
+                <div>
+                  <strong>宠物：</strong>
+                  {currentReviewOrder.petInfo.name || "-"}
+                </div>
+              )}
+            </div>
+
+            <Form.Item
+              label="评分"
+              name="rating"
+              rules={[{ required: true, message: "请选择评分" }]}
+            >
+              <Rate allowClear={false} />
+            </Form.Item>
+
+            <Form.Item
+              label="评价内容"
+              name="comment"
+              rules={[
+                { required: true, message: "请输入评价内容" },
+                { max: 500, message: "评价内容不能超过500字" },
+              ]}
+            >
+              <TextArea
+                rows={6}
+                placeholder="请输入您的评价内容（必填，最多500字）"
+                showCount
+                maxLength={500}
+              />
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+      
+      {/* 订单详情弹窗 */}
+      <Modal
+        title="订单详情"
+        open={detailModalOpen}
+        onCancel={handleDetailModalClose}
+        footer={[
+          <Button key="close" onClick={handleDetailModalClose}>
+            关闭
+          </Button>,
+        ]}
+        width={700}
+      >
+        {currentDetailOrder && (
+          <Descriptions column={1} bordered>
+            <Descriptions.Item label="订单号">
+              {currentDetailOrder.orderId || "-"}
+            </Descriptions.Item>
+            {currentDetailOrder.storeName && (
+              <Descriptions.Item label="门店名称">
+                {currentDetailOrder.storeName}
+              </Descriptions.Item>
+            )}
+            {currentDetailOrder.petInfo && (
+              <>
+                <Descriptions.Item label="宠物名称">
+                  {currentDetailOrder.petInfo.name || "-"}
+                </Descriptions.Item>
+                {currentDetailOrder.petInfo.breed && (
+                  <Descriptions.Item label="品种">
+                    {currentDetailOrder.petInfo.breed}
+                  </Descriptions.Item>
+                )}
+                {currentDetailOrder.petInfo.type && (
+                  <Descriptions.Item label="类型">
+                    {currentDetailOrder.petInfo.type}
+                  </Descriptions.Item>
+                )}
+                {currentDetailOrder.petInfo.age !== undefined && (
+                  <Descriptions.Item label="年龄">
+                    {currentDetailOrder.petInfo.age}岁
+                  </Descriptions.Item>
+                )}
+              </>
+            )}
+            <Descriptions.Item label="开始日期">
+              {formatDate(currentDetailOrder.startDate)}
+            </Descriptions.Item>
+            <Descriptions.Item label="结束日期">
+              {formatDate(currentDetailOrder.endDate)}
+            </Descriptions.Item>
+            {currentDetailOrder.checkinTime && (
+              <Descriptions.Item label="入住时间">
+                {formatDateTime(currentDetailOrder.checkinTime)}
+              </Descriptions.Item>
+            )}
+            {currentDetailOrder.checkoutTime && (
+              <Descriptions.Item label="退房时间">
+                {formatDateTime(currentDetailOrder.checkoutTime)}
+              </Descriptions.Item>
+            )}
+            {currentDetailOrder.totalAmount !== undefined && currentDetailOrder.totalAmount !== null && (
+              <Descriptions.Item label="订单总额">
+                <span style={{ color: "#fa541c", fontWeight: "bold" }}>
+                  ¥{currentDetailOrder.totalAmount.toFixed(2)}
+                </span>
+              </Descriptions.Item>
+            )}
+            {currentDetailOrder.finalAmount !== undefined && currentDetailOrder.finalAmount !== null && (
+              <Descriptions.Item label="最终金额">
+                <span style={{ color: "#fa541c", fontWeight: "bold" }}>
+                  ¥{currentDetailOrder.finalAmount.toFixed(2)}
+                </span>
+              </Descriptions.Item>
+            )}
+            {currentDetailOrder.review && (
+              <>
+                <Descriptions.Item label="评分">
+                  <Rate disabled value={currentDetailOrder.review.rating || 0} />
+                </Descriptions.Item>
+                {currentDetailOrder.review.comment && (
+                  <Descriptions.Item label="评价内容">
+                    {currentDetailOrder.review.comment}
+                  </Descriptions.Item>
+                )}
+                {currentDetailOrder.review.createTime && (
+                  <Descriptions.Item label="评价时间">
+                    {formatDateTime(currentDetailOrder.review.createTime)}
+                  </Descriptions.Item>
+                )}
+              </>
+            )}
+          </Descriptions>
+        )}
+      </Modal>
     </div>
   );
 };

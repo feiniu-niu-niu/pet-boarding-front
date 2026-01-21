@@ -1,0 +1,262 @@
+// ReviewOrders 页面样式
+
+$primary-color: #722ed1;
+$bg-color: #fafafa;
+$card-bg: #ffffff;
+$text-primary: #262626;
+$text-secondary: #8c8c8c;
+$border-color: #e8e8e8;
+$price-color: #fa541c;
+
+.review-orders-container {
+  min-height: 100vh;
+  background-color: $bg-color;
+}
+
+.review-orders-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+}
+
+// 页面标题区域
+.review-orders-header {
+  margin-bottom: 32px;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #b37feb 0%, #722ed1 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(114, 46, 209, 0.2);
+
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.2;
+  }
+}
+
+// 标签页区域
+.tabs-section {
+  background-color: $card-bg;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 8px 16px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+
+  // 隐藏滚动条但保持滚动功能
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE and Edge
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome, Safari, Opera
+  }
+}
+
+.review-orders-tabs {
+  .ant-tabs-tab {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 24px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: $primary-color;
+    }
+
+    &.ant-tabs-tab-active {
+      .ant-tabs-tab-btn {
+        color: $primary-color;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .ant-tabs-ink-bar {
+    background: $primary-color;
+    height: 3px;
+  }
+}
+
+// 订单列表区域
+.orders-section {
+  min-height: 400px;
+}
+
+.order-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// 订单卡片
+.review-order-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .ant-card-body {
+    padding: 24px;
+  }
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid $border-color;
+
+  .order-id {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .store-name {
+    font-size: 14px;
+    color: $text-secondary;
+  }
+}
+
+.pet-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 8px;
+
+  .pet-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    border: 2px solid $border-color;
+  }
+
+  .pet-details {
+    flex: 1;
+
+    .pet-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: $text-primary;
+      margin-bottom: 4px;
+    }
+
+    .pet-meta {
+      font-size: 14px;
+      color: $text-secondary;
+
+      span {
+        margin-right: 12px;
+
+        &:not(:last-child)::after {
+          content: "·";
+          margin-left: 12px;
+          color: $border-color;
+        }
+      }
+    }
+  }
+}
+
+.order-info {
+  margin-bottom: 16px;
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+
+    .label {
+      color: $text-secondary;
+    }
+
+    .value {
+      color: $text-primary;
+      font-weight: 500;
+
+      &.price {
+        color: $price-color;
+        font-weight: 600;
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+.review-preview {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border-left: 3px solid $primary-color;
+
+  .review-rating {
+    margin-bottom: 8px;
+  }
+
+  .review-comment {
+    font-size: 14px;
+    color: $text-primary;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .review-time {
+    font-size: 12px;
+    color: $text-secondary;
+  }
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid $border-color;
+
+  .ant-btn {
+    min-width: 100px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .review-orders-content {
+    padding: 20px 16px 40px;
+  }
+
+  .review-orders-header {
+    padding: 20px 24px;
+
+    h1 {
+      font-size: 24px;
+    }
+  }
+
+  .order-list {
+    gap: 16px;
+  }
+
+  .review-order-card {
+    .ant-card-body {
+      padding: 16px;
+    }
+  }
+}

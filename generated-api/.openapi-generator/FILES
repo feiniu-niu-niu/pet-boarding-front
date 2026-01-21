@@ -4,6 +4,10 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/AbnormalRecordManagementApi.md
+docs/AddAbnormalRecordDto.md
+docs/AddReviewDto.md
+docs/AddTreatmentRecordDto.md
 docs/BoardingOrderDto.md
 docs/BoardingOrderManagementApi.md
 docs/CareLogDto.md
@@ -13,9 +17,13 @@ docs/LocalTime.md
 docs/PetManagementApi.md
 docs/Pet对象.md
 docs/R.md
+docs/ReviewManagementApi.md
 docs/SearchStoreDto.md
 docs/ServiceItemControllerApi.md
+docs/SseEmitter.md
 docs/StoreManagementApi.md
+docs/TreatmentDecisionDto.md
+docs/TreatmentRecordManagementApi.md
 docs/UpdateUserDto.md
 docs/UserManagementApi.md
 docs/User对象.md

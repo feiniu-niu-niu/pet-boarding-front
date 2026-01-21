@@ -23,6 +23,62 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+export interface AddAbnormalRecordDto {
+    'abnormalType'?: string;
+    'description'?: string;
+    'isNotified'?: number;
+    'isTreatment'?: number;
+    'operatorId'?: number;
+    'orderId'?: string;
+    'storeId'?: number;
+    'suggestionAction'?: string;
+}
+/**
+ * 新增评价参数
+ */
+export interface AddReviewDto {
+    /**
+     * 文字评价
+     */
+    'comment'?: string;
+    /**
+     * 订单ID（外键，关联订单id）
+     */
+    'orderId': string;
+    /**
+     * 综合评分（1-5分）
+     */
+    'rating': number;
+    /**
+     * 评价用户ID
+     */
+    'userId': number;
+}
+/**
+ * 新增治疗记录参数
+ */
+export interface AddTreatmentRecordDto {
+    /**
+     * 实际治疗费用
+     */
+    'actualCost'?: number;
+    /**
+     * 实际执行的治疗方案
+     */
+    'actualTreatment'?: string;
+    /**
+     * 审批ID（外键，关联审批id）
+     */
+    'approvalId': number;
+    /**
+     * 药物详情
+     */
+    'medicationsUsed'?: string;
+    /**
+     * 治疗时间（不传则使用当前时间）
+     */
+    'treatmentTime'?: string;
+}
 export interface BoardingOrderDto {
     /**
      * 笼位
@@ -159,6 +215,13 @@ export interface SearchStoreDto {
      */
     'longitude'?: number;
 }
+export interface SseEmitter {
+    'timeout'?: number;
+}
+export interface TreatmentDecisionDto {
+    'approvalId'?: number;
+    'decision'?: number;
+}
 export interface UpdateUserDto {
     /**
      * 头像地址
@@ -233,6 +296,321 @@ export interface User {
 }
 
 /**
+ * AbnormalRecordManagementApi - axios parameter creator
+ */
+export const AbnormalRecordManagementApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary 门店员工新增异常记录（如需治疗且需通知主人则推送 SSE 并生成审批）
+         * @param {AddAbnormalRecordDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addUsingPOST: async (dto: AddAbnormalRecordDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'dto' is not null or undefined
+            assertParamExists('addUsingPOST', 'dto', dto)
+            const localVarPath = `/abnormal-record/add`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(dto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 主人对治疗审批做决定（同意/拒绝）
+         * @param {TreatmentDecisionDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        decideUsingPOST: async (dto: TreatmentDecisionDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'dto' is not null or undefined
+            assertParamExists('decideUsingPOST', 'dto', dto)
+            const localVarPath = `/abnormal-record/treatment-approval/decision`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(dto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 查询当前用户待处理的治疗审批列表
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPendingApprovalsUsingGET: async (userId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('getPendingApprovalsUsingGET', 'userId', userId)
+            const localVarPath = `/abnormal-record/treatment-approval/pending`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (userId !== undefined) {
+                localVarQueryParameter['userId'] = userId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 主人订阅 SSE（用于接收异常/治疗审批通知）
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        subscribeUsingGET: async (userId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('subscribeUsingGET', 'userId', userId)
+            const localVarPath = `/abnormal-record/sse/subscribe`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (userId !== undefined) {
+                localVarQueryParameter['userId'] = userId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AbnormalRecordManagementApi - functional programming interface
+ */
+export const AbnormalRecordManagementApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AbnormalRecordManagementApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary 门店员工新增异常记录（如需治疗且需通知主人则推送 SSE 并生成审批）
+         * @param {AddAbnormalRecordDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async addUsingPOST(dto: AddAbnormalRecordDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addUsingPOST(dto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AbnormalRecordManagementApi.addUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 主人对治疗审批做决定（同意/拒绝）
+         * @param {TreatmentDecisionDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async decideUsingPOST(dto: TreatmentDecisionDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.decideUsingPOST(dto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AbnormalRecordManagementApi.decideUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 查询当前用户待处理的治疗审批列表
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPendingApprovalsUsingGET(userId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPendingApprovalsUsingGET(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AbnormalRecordManagementApi.getPendingApprovalsUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 主人订阅 SSE（用于接收异常/治疗审批通知）
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async subscribeUsingGET(userId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SseEmitter>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.subscribeUsingGET(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AbnormalRecordManagementApi.subscribeUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AbnormalRecordManagementApi - factory interface
+ */
+export const AbnormalRecordManagementApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AbnormalRecordManagementApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary 门店员工新增异常记录（如需治疗且需通知主人则推送 SSE 并生成审批）
+         * @param {AddAbnormalRecordDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addUsingPOST(dto: AddAbnormalRecordDto, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.addUsingPOST(dto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 主人对治疗审批做决定（同意/拒绝）
+         * @param {TreatmentDecisionDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        decideUsingPOST(dto: TreatmentDecisionDto, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.decideUsingPOST(dto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 查询当前用户待处理的治疗审批列表
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPendingApprovalsUsingGET(userId: number, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getPendingApprovalsUsingGET(userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 主人订阅 SSE（用于接收异常/治疗审批通知）
+         * @param {number} userId userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        subscribeUsingGET(userId: number, options?: RawAxiosRequestConfig): AxiosPromise<SseEmitter> {
+            return localVarFp.subscribeUsingGET(userId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AbnormalRecordManagementApi - object-oriented interface
+ */
+export class AbnormalRecordManagementApi extends BaseAPI {
+    /**
+     * 
+     * @summary 门店员工新增异常记录（如需治疗且需通知主人则推送 SSE 并生成审批）
+     * @param {AddAbnormalRecordDto} dto dto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public addUsingPOST(dto: AddAbnormalRecordDto, options?: RawAxiosRequestConfig) {
+        return AbnormalRecordManagementApiFp(this.configuration).addUsingPOST(dto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 主人对治疗审批做决定（同意/拒绝）
+     * @param {TreatmentDecisionDto} dto dto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public decideUsingPOST(dto: TreatmentDecisionDto, options?: RawAxiosRequestConfig) {
+        return AbnormalRecordManagementApiFp(this.configuration).decideUsingPOST(dto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 查询当前用户待处理的治疗审批列表
+     * @param {number} userId userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPendingApprovalsUsingGET(userId: number, options?: RawAxiosRequestConfig) {
+        return AbnormalRecordManagementApiFp(this.configuration).getPendingApprovalsUsingGET(userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 主人订阅 SSE（用于接收异常/治疗审批通知）
+     * @param {number} userId userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public subscribeUsingGET(userId: number, options?: RawAxiosRequestConfig) {
+        return AbnormalRecordManagementApiFp(this.configuration).subscribeUsingGET(userId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * BoardingOrderManagementApi - axios parameter creator
  */
 export const BoardingOrderManagementApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -267,6 +645,40 @@ export const BoardingOrderManagementApiAxiosParamCreator = function (configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(boardingOrderDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 宠物入托（门店员工操作，更新checkinTime和订单状态为寄养中）
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkInUsingPOST: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('checkInUsingPOST', 'orderId', orderId)
+            const localVarPath = `/boarding-order/checkIn/{orderId}`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -395,6 +807,116 @@ export const BoardingOrderManagementApiAxiosParamCreator = function (configurati
         },
         /**
          * 
+         * @summary 宠物主人查看待结算订单的应付金额
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSettlementAmountUsingGET: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('getSettlementAmountUsingGET', 'orderId', orderId)
+            const localVarPath = `/boarding-order/settlementAmount/{orderId}`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 查询门店需要治疗的宠物列表（可根据审批状态过滤：0-待处理，1-已同意，2-已拒绝，3-已过期，不传则返回所有状态）
+         * @param {number} storeId storeId
+         * @param {number} [approvalStatus] approvalStatus
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTreatmentPendingOrdersUsingGET: async (storeId: number, approvalStatus?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'storeId' is not null or undefined
+            assertParamExists('getTreatmentPendingOrdersUsingGET', 'storeId', storeId)
+            const localVarPath = `/boarding-order/treatmentPendingOrders`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (approvalStatus !== undefined) {
+                localVarQueryParameter['approvalStatus'] = approvalStatus;
+            }
+
+            if (storeId !== undefined) {
+                localVarQueryParameter['storeId'] = storeId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 宠物主人接回，订单从寄养中变为待结算，并返回待支付金额
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ownerPickupUsingPOST: async (orderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'orderId' is not null or undefined
+            assertParamExists('ownerPickupUsingPOST', 'orderId', orderId)
+            const localVarPath = `/boarding-order/pickup/{orderId}`
+                .replace(`{${"orderId"}}`, encodeURIComponent(String(orderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary 订单状态待支付->支付定金
          * @param {string} orderId orderId
          * @param {*} [options] Override http request option.
@@ -451,6 +973,19 @@ export const BoardingOrderManagementApiFp = function(configuration?: Configurati
         },
         /**
          * 
+         * @summary 宠物入托（门店员工操作，更新checkinTime和订单状态为寄养中）
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async checkInUsingPOST(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.checkInUsingPOST(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.checkInUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary 根据订单状态和用户ID获取订单列表（支付列表）
          * @param {number} orderStatus orderStatus
          * @param {number} userId userId
@@ -492,6 +1027,46 @@ export const BoardingOrderManagementApiFp = function(configuration?: Configurati
         },
         /**
          * 
+         * @summary 宠物主人查看待结算订单的应付金额
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getSettlementAmountUsingGET(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSettlementAmountUsingGET(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.getSettlementAmountUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 查询门店需要治疗的宠物列表（可根据审批状态过滤：0-待处理，1-已同意，2-已拒绝，3-已过期，不传则返回所有状态）
+         * @param {number} storeId storeId
+         * @param {number} [approvalStatus] approvalStatus
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTreatmentPendingOrdersUsingGET(storeId: number, approvalStatus?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTreatmentPendingOrdersUsingGET(storeId, approvalStatus, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.getTreatmentPendingOrdersUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 宠物主人接回，订单从寄养中变为待结算，并返回待支付金额
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async ownerPickupUsingPOST(orderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.ownerPickupUsingPOST(orderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BoardingOrderManagementApi.ownerPickupUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary 订单状态待支付->支付定金
          * @param {string} orderId orderId
          * @param {*} [options] Override http request option.
@@ -521,6 +1096,16 @@ export const BoardingOrderManagementApiFactory = function (configuration?: Confi
          */
         addBoardingOrderUsingPOST(boardingOrderDto: BoardingOrderDto, options?: RawAxiosRequestConfig): AxiosPromise<R> {
             return localVarFp.addBoardingOrderUsingPOST(boardingOrderDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 宠物入托（门店员工操作，更新checkinTime和订单状态为寄养中）
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkInUsingPOST(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.checkInUsingPOST(orderId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -556,6 +1141,37 @@ export const BoardingOrderManagementApiFactory = function (configuration?: Confi
         },
         /**
          * 
+         * @summary 宠物主人查看待结算订单的应付金额
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSettlementAmountUsingGET(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getSettlementAmountUsingGET(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 查询门店需要治疗的宠物列表（可根据审批状态过滤：0-待处理，1-已同意，2-已拒绝，3-已过期，不传则返回所有状态）
+         * @param {number} storeId storeId
+         * @param {number} [approvalStatus] approvalStatus
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTreatmentPendingOrdersUsingGET(storeId: number, approvalStatus?: number, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getTreatmentPendingOrdersUsingGET(storeId, approvalStatus, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 宠物主人接回，订单从寄养中变为待结算，并返回待支付金额
+         * @param {string} orderId orderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        ownerPickupUsingPOST(orderId: string, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.ownerPickupUsingPOST(orderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary 订单状态待支付->支付定金
          * @param {string} orderId orderId
          * @param {*} [options] Override http request option.
@@ -580,6 +1196,17 @@ export class BoardingOrderManagementApi extends BaseAPI {
      */
     public addBoardingOrderUsingPOST(boardingOrderDto: BoardingOrderDto, options?: RawAxiosRequestConfig) {
         return BoardingOrderManagementApiFp(this.configuration).addBoardingOrderUsingPOST(boardingOrderDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 宠物入托（门店员工操作，更新checkinTime和订单状态为寄养中）
+     * @param {string} orderId orderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public checkInUsingPOST(orderId: string, options?: RawAxiosRequestConfig) {
+        return BoardingOrderManagementApiFp(this.configuration).checkInUsingPOST(orderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -615,6 +1242,40 @@ export class BoardingOrderManagementApi extends BaseAPI {
      */
     public getOrderStatusUsingGET(orderId: string, options?: RawAxiosRequestConfig) {
         return BoardingOrderManagementApiFp(this.configuration).getOrderStatusUsingGET(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 宠物主人查看待结算订单的应付金额
+     * @param {string} orderId orderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getSettlementAmountUsingGET(orderId: string, options?: RawAxiosRequestConfig) {
+        return BoardingOrderManagementApiFp(this.configuration).getSettlementAmountUsingGET(orderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 查询门店需要治疗的宠物列表（可根据审批状态过滤：0-待处理，1-已同意，2-已拒绝，3-已过期，不传则返回所有状态）
+     * @param {number} storeId storeId
+     * @param {number} [approvalStatus] approvalStatus
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTreatmentPendingOrdersUsingGET(storeId: number, approvalStatus?: number, options?: RawAxiosRequestConfig) {
+        return BoardingOrderManagementApiFp(this.configuration).getTreatmentPendingOrdersUsingGET(storeId, approvalStatus, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 宠物主人接回，订单从寄养中变为待结算，并返回待支付金额
+     * @param {string} orderId orderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public ownerPickupUsingPOST(orderId: string, options?: RawAxiosRequestConfig) {
+        return BoardingOrderManagementApiFp(this.configuration).ownerPickupUsingPOST(orderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1310,6 +1971,253 @@ export class PetManagementApi extends BaseAPI {
 
 
 /**
+ * ReviewManagementApi - axios parameter creator
+ */
+export const ReviewManagementApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary 新增评价
+         * @param {AddReviewDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addReviewUsingPOST: async (dto: AddReviewDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'dto' is not null or undefined
+            assertParamExists('addReviewUsingPOST', 'dto', dto)
+            const localVarPath = `/review/add`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(dto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 根据门店ID获取评论列表
+         * @param {number} storeId storeId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getReviewListByStoreIdUsingGET: async (storeId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'storeId' is not null or undefined
+            assertParamExists('getReviewListByStoreIdUsingGET', 'storeId', storeId)
+            const localVarPath = `/review/list/{storeId}`
+                .replace(`{${"storeId"}}`, encodeURIComponent(String(storeId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary 查询评价订单列表（待评价或已评价）
+         * @param {number} userId userId
+         * @param {boolean} [reviewed] reviewed
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getReviewOrdersUsingGET: async (userId: number, reviewed?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('getReviewOrdersUsingGET', 'userId', userId)
+            const localVarPath = `/review/orders/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (reviewed !== undefined) {
+                localVarQueryParameter['reviewed'] = reviewed;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ReviewManagementApi - functional programming interface
+ */
+export const ReviewManagementApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ReviewManagementApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary 新增评价
+         * @param {AddReviewDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async addReviewUsingPOST(dto: AddReviewDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addReviewUsingPOST(dto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReviewManagementApi.addReviewUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 根据门店ID获取评论列表
+         * @param {number} storeId storeId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getReviewListByStoreIdUsingGET(storeId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getReviewListByStoreIdUsingGET(storeId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReviewManagementApi.getReviewListByStoreIdUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary 查询评价订单列表（待评价或已评价）
+         * @param {number} userId userId
+         * @param {boolean} [reviewed] reviewed
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getReviewOrdersUsingGET(userId: number, reviewed?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getReviewOrdersUsingGET(userId, reviewed, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReviewManagementApi.getReviewOrdersUsingGET']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ReviewManagementApi - factory interface
+ */
+export const ReviewManagementApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ReviewManagementApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary 新增评价
+         * @param {AddReviewDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addReviewUsingPOST(dto: AddReviewDto, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.addReviewUsingPOST(dto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 根据门店ID获取评论列表
+         * @param {number} storeId storeId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getReviewListByStoreIdUsingGET(storeId: number, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getReviewListByStoreIdUsingGET(storeId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary 查询评价订单列表（待评价或已评价）
+         * @param {number} userId userId
+         * @param {boolean} [reviewed] reviewed
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getReviewOrdersUsingGET(userId: number, reviewed?: boolean, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.getReviewOrdersUsingGET(userId, reviewed, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ReviewManagementApi - object-oriented interface
+ */
+export class ReviewManagementApi extends BaseAPI {
+    /**
+     * 
+     * @summary 新增评价
+     * @param {AddReviewDto} dto dto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public addReviewUsingPOST(dto: AddReviewDto, options?: RawAxiosRequestConfig) {
+        return ReviewManagementApiFp(this.configuration).addReviewUsingPOST(dto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 根据门店ID获取评论列表
+     * @param {number} storeId storeId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getReviewListByStoreIdUsingGET(storeId: number, options?: RawAxiosRequestConfig) {
+        return ReviewManagementApiFp(this.configuration).getReviewListByStoreIdUsingGET(storeId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary 查询评价订单列表（待评价或已评价）
+     * @param {number} userId userId
+     * @param {boolean} [reviewed] reviewed
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getReviewOrdersUsingGET(userId: number, reviewed?: boolean, options?: RawAxiosRequestConfig) {
+        return ReviewManagementApiFp(this.configuration).getReviewOrdersUsingGET(userId, reviewed, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * ServiceItemControllerApi - axios parameter creator
  */
 export const ServiceItemControllerApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -1576,6 +2484,109 @@ export class StoreManagementApi extends BaseAPI {
      */
     public getStoreListUsingPOST(searchStoreDto: SearchStoreDto, options?: RawAxiosRequestConfig) {
         return StoreManagementApiFp(this.configuration).getStoreListUsingPOST(searchStoreDto, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * TreatmentRecordManagementApi - axios parameter creator
+ */
+export const TreatmentRecordManagementApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary 新增治疗记录及费用（门店员工操作）
+         * @param {AddTreatmentRecordDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addTreatmentRecordUsingPOST: async (dto: AddTreatmentRecordDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'dto' is not null or undefined
+            assertParamExists('addTreatmentRecordUsingPOST', 'dto', dto)
+            const localVarPath = `/treatment-record/add`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(dto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TreatmentRecordManagementApi - functional programming interface
+ */
+export const TreatmentRecordManagementApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TreatmentRecordManagementApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary 新增治疗记录及费用（门店员工操作）
+         * @param {AddTreatmentRecordDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async addTreatmentRecordUsingPOST(dto: AddTreatmentRecordDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<R>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addTreatmentRecordUsingPOST(dto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TreatmentRecordManagementApi.addTreatmentRecordUsingPOST']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TreatmentRecordManagementApi - factory interface
+ */
+export const TreatmentRecordManagementApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TreatmentRecordManagementApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary 新增治疗记录及费用（门店员工操作）
+         * @param {AddTreatmentRecordDto} dto dto
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        addTreatmentRecordUsingPOST(dto: AddTreatmentRecordDto, options?: RawAxiosRequestConfig): AxiosPromise<R> {
+            return localVarFp.addTreatmentRecordUsingPOST(dto, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TreatmentRecordManagementApi - object-oriented interface
+ */
+export class TreatmentRecordManagementApi extends BaseAPI {
+    /**
+     * 
+     * @summary 新增治疗记录及费用（门店员工操作）
+     * @param {AddTreatmentRecordDto} dto dto
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public addTreatmentRecordUsingPOST(dto: AddTreatmentRecordDto, options?: RawAxiosRequestConfig) {
+        return TreatmentRecordManagementApiFp(this.configuration).addTreatmentRecordUsingPOST(dto, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

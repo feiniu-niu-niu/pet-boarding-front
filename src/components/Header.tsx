@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Dropdown, type MenuProps } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { Dropdown, type MenuProps, Badge } from "antd";
+import { DownOutlined, BellOutlined } from "@ant-design/icons";
 import { getUserInfo, logout, isAuthenticated } from "../utils/auth";
 import LoginModal from "./LoginModal";
 import "../pages/home.scss";
 import { getAvatarUrl } from "../services/api";
+import { useStore } from "../zustand/store";
 // 默认头像路径
 const DEFAULT_AVATAR = new URL("../img/defult.png", import.meta.url).href;
 
@@ -22,6 +23,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const [userInfo, setUserInfo] = useState(getUserInfo());
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  
+  // 获取待处理审批数量和触发查询的函数
+  const { pendingApprovalCount, triggerCheckApprovals } = useStore();
 
   const handleLogout = () => {
     logout();
@@ -40,6 +44,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
     setUserInfo(getUserInfo());
     setAuthenticated(isAuthenticated());
     setLoginModalOpen(false);
+  };
+
+  // 处理点击通知图标
+  const handleNotificationClick = () => {
+    if (triggerCheckApprovals) {
+      triggerCheckApprovals();
+    }
   };
 
   // 处理点击简介 - 直接跳转到简介页面
@@ -103,22 +114,13 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       key: "consumption",
       label: consumptionLabel,
     },
-    // 门店员工显示日常照料选项
-    ...(userInfo?.userType === 2
-      ? [
-          {
-            key: "daily-care",
-            label: "日常照料",
-          },
-        ]
-      : []),
     // 宠物主人显示宠物日常选项
     ...(userInfo?.userType !== 2
       ? [
           {
             key: "pet-daily",
             label: "宠物日常",
-          },
+    },
         ]
       : []),
     {
@@ -143,10 +145,50 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </div>
           </div>
           <nav className="header-nav">
+            {/* 宠物主人视角：显示服务相关导航 */}
+            {(!authenticated || !userInfo || userInfo.userType !== 2) && (
+              <>
             <a href="#services" className="nav-link">附近的宠物服务</a>
-            <a href="#sitter" className="nav-link">成为宠物保姆</a>
-            <a href="#help" className="nav-link">客户帮助中心</a>
+                {/* <a href="#sitter" className="nav-link">成为宠物保姆</a> */}
+                <a
+                  href="/review-orders"
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/review-orders");
+                  }}
+                >
+                  评价订单
+                </a>
+              </>
+            )}
+            {/* 门店员工视角：显示工作相关导航 */}
+            {authenticated && userInfo && userInfo.userType === 2 && (
+              <>
+                <a 
+                  href="/daily-care" 
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/daily-care");
+                  }}
+                >
+                  日常照料
+                </a>
+                <a 
+                  href="/abnormal-records" 
+                  className="nav-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/abnormal-records");
+                  }}
+                >
+                  异常情况
+                </a>
+              </>
+            )}
             {authenticated && userInfo ? (
+              <>
               <Dropdown
                 menu={{ items: menuItems, onClick: handleMenuClick }}
                 placement="bottomRight"
@@ -165,6 +207,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   <DownOutlined className="dropdown-icon" />
                 </div>
               </Dropdown>
+                {/* 只对宠物主人显示通知图标 */}
+                {userInfo.userType !== 2 && (
+                  <div className="notification-icon-wrapper" onClick={handleNotificationClick}>
+                    <Badge count={pendingApprovalCount} size="small">
+                      <BellOutlined className="notification-icon" />
+                    </Badge>
+                  </div>
+                )}
+              </>
             ) : (
               <button className="login-register-btn" onClick={handleLoginClick}>
                 登录 | 注册

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Tabs, Card, Empty, message, Spin, Tag } from "antd";
+import { Tabs, Card, Empty, message, Spin, Tag, Button, Modal } from "antd";
 import type { TabsProps } from "antd";
 import Header from "../components/Header";
-import { getOrderListByStoreId, getAvatarUrl } from "../services/api";
+import { getOrderListByStoreId, getAvatarUrl, checkinOrder, checkoutOrder } from "../services/api";
 import { isSuccess } from "../utils/response";
 import { getUserInfo } from "../utils/auth";
 import "./store-orders.scss";
@@ -100,6 +100,10 @@ const StoreOrders: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [orderList, setOrderList] = useState<OrderInfo[]>([]);
   const [storeId, setStoreId] = useState<number | null>(null);
+  const [checkinLoading, setCheckinLoading] = useState<string | null>(null); // 记录正在入托的订单ID
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null); // 记录正在主人接回的订单ID
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false); // 主人接回弹框显示状态
+  const [currentCheckoutOrder, setCurrentCheckoutOrder] = useState<OrderInfo | null>(null); // 当前要接回的订单
 
   // 从用户信息中获取 storeId
   useEffect(() => {
@@ -182,6 +186,97 @@ const StoreOrders: React.FC = () => {
         loadOrderList(status);
       }
     }
+  };
+
+  // 处理入托操作
+  const handleCheckin = async (orderId: string) => {
+    if (!orderId) {
+      message.error("订单ID不存在");
+      return;
+    }
+
+    setCheckinLoading(orderId);
+    try {
+      const result = await checkinOrder(orderId);
+      if (isSuccess(result.code)) {
+        message.success("入托成功");
+        // 重新加载订单列表
+        if (activeTab === "all") {
+          loadOrderList(undefined);
+        } else {
+          const status = ORDER_STATUS_CONFIG[parseInt(activeTab)]?.status;
+          if (status !== undefined) {
+            loadOrderList(status);
+          } else {
+            loadOrderList(undefined);
+          }
+        }
+      } else {
+        message.error(result.msg || "入托失败");
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.msg ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "入托失败，请稍后重试";
+      message.error(errorMsg);
+    } finally {
+      setCheckinLoading(null);
+    }
+  };
+
+  // 处理点击主人接回按钮 - 弹出确认弹框
+  const handleCheckoutClick = (order: OrderInfo) => {
+    setCurrentCheckoutOrder(order);
+    setCheckoutModalOpen(true);
+  };
+
+  // 确认主人接回操作
+  const handleConfirmCheckout = async () => {
+    if (!currentCheckoutOrder?.orderId) {
+      message.error("订单ID不存在");
+      return;
+    }
+
+    setCheckoutLoading(currentCheckoutOrder.orderId);
+    try {
+      const result = await checkoutOrder(currentCheckoutOrder.orderId);
+      if (isSuccess(result.code)) {
+        message.success("主人接回成功，订单已变为待结算状态");
+        setCheckoutModalOpen(false);
+        setCurrentCheckoutOrder(null);
+        
+        // 重新加载订单列表
+        if (activeTab === "all") {
+          loadOrderList(undefined);
+        } else {
+          const status = ORDER_STATUS_CONFIG[parseInt(activeTab)]?.status;
+          if (status !== undefined) {
+            loadOrderList(status);
+          } else {
+            loadOrderList(undefined);
+          }
+        }
+      } else {
+        message.error(result.msg || "主人接回失败");
+      }
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.msg ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "主人接回失败，请稍后重试";
+      message.error(errorMsg);
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
+
+  // 取消主人接回操作
+  const handleCancelCheckout = () => {
+    setCheckoutModalOpen(false);
+    setCurrentCheckoutOrder(null);
   };
 
   // 初始加载和URL参数变化时加载数据
@@ -341,12 +436,39 @@ const StoreOrders: React.FC = () => {
           </div>
 
           {/* 其他信息 */}
-          {order.cageId && (
+          {/* {order.cageId && (
             <div className="info-item">
               <span className="label">笼位ID：</span>
               <span className="value">{order.cageId}</span>
             </div>
+          )} */}
+
+          {/* 入托按钮 - 仅当订单状态为 2（已预约(定金已付)）时显示 */}
+          {orderStatus === 2 && order.orderId && (
+            <div className="order-actions" style={{ marginTop: 16, textAlign: "right" }}>
+              <Button
+                type="primary"
+                onClick={() => handleCheckin(order.orderId!)}
+                loading={checkinLoading === order.orderId}
+              >
+                入托
+              </Button>
+            </div>
           )}
+
+          {/* 主人接回按钮 - 仅当订单状态为 3（寄养中(已入托)）时显示 */}
+          {orderStatus === 3 && order.orderId && (
+            <div className="order-actions" style={{ marginTop: 16, textAlign: "right" }}>
+              <Button
+                type="primary"
+                onClick={() => handleCheckoutClick(order)}
+                loading={checkoutLoading === order.orderId}
+              >
+                主人接回
+              </Button>
+            </div>
+          )}
+          
         </div>
       </Card>
     );
@@ -384,6 +506,31 @@ const StoreOrders: React.FC = () => {
           </Spin>
         </div>
       </div>
+
+      {/* 主人接回确认弹框 */}
+      <Modal
+        title="确认主人接回"
+        open={checkoutModalOpen}
+        onOk={handleConfirmCheckout}
+        onCancel={handleCancelCheckout}
+        confirmLoading={checkoutLoading === currentCheckoutOrder?.orderId}
+        okText="确认接回"
+        cancelText="取消"
+      >
+        {currentCheckoutOrder && (
+          <div>
+            <p>确认要将订单 <strong>{currentCheckoutOrder.orderId}</strong> 标记为&ldquo;主人接回&rdquo;吗？</p>
+            {currentCheckoutOrder.petInfo && (
+              <p style={{ marginTop: 12 }}>
+                宠物：<strong>{currentCheckoutOrder.petInfo.name}</strong>
+              </p>
+            )}
+            <p style={{ marginTop: 8, color: "#666" }}>
+              操作后，订单状态将变为&ldquo;待结算&rdquo;。
+            </p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

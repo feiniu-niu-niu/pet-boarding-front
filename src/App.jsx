@@ -10,7 +10,10 @@ import Consumption from "./pages/Consumption";
 import StoreOrders from "./pages/StoreOrders";
 import DailyCare from "./pages/DailyCare";
 import PetDaily from "./pages/PetDaily";
+import AbnormalRecords from "./pages/AbnormalRecords";
+import ReviewOrders from "./pages/ReviewOrders";
 import ProtectedRoute from "./components/ProtectedRoute";
+import TreatmentApprovalManager from "./components/TreatmentApprovalManager";
 
 const router = createBrowserRouter([
   {
@@ -85,10 +88,32 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/abnormal-records",
+    element: (
+      <ProtectedRoute>
+        <AbnormalRecords />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/review-orders",
+    element: (
+      <ProtectedRoute>
+        <ReviewOrders />
+      </ProtectedRoute>
+    ),
+  },
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      {/* 全局审批管理器，监听 SSE 事件并显示审批弹窗 */}
+      <TreatmentApprovalManager />
+    </>
+  );
 }
 
 export default App;

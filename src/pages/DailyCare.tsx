@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Table, Tabs, Modal, Form, Input, Upload, Button, message, Pagination, TimePicker, Spin, Descriptions } from "antd";
+import { Table, Tabs, Modal, Form, Input, Upload, Button, message, Pagination, TimePicker, Spin, Descriptions, Switch } from "antd";
 import type { TabsProps, UploadFile } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Header from "../components/Header";
-import { getPetListByStoreId, getAvatarUrl, addCareLog, getCareLogDetail, getBackendBaseUrl } from "../services/api";
+import { getPetListByStoreId, getAvatarUrl, addCareLog, getCareLogDetail, getBackendBaseUrl, addAbnormalRecord } from "../services/api";
 import { isSuccess } from "../utils/response";
 import { getUserInfo } from "../utils/auth";
 import "./daily-care.scss";
@@ -81,6 +81,9 @@ const DailyCare: React.FC = () => {
   const [careLogDetail, setCareLogDetail] = useState<any>(null); // 照料日志详情
   const [loadingDetail, setLoadingDetail] = useState(false); // 加载详情状态
   const [currentDetailRecord, setCurrentDetailRecord] = useState<OrderInfo | null>(null); // 当前查看详情的记录（用于获取宠物信息）
+  const [abnormalRecordModalOpen, setAbnormalRecordModalOpen] = useState(false); // 异常记录模态框
+  const [abnormalRecordForm] = Form.useForm(); // 异常记录表单
+  const [currentAbnormalRecord, setCurrentAbnormalRecord] = useState<OrderInfo | null>(null); // 当前选中的异常记录
 
   // 从用户信息中获取 storeId
   useEffect(() => {
@@ -263,18 +266,28 @@ const DailyCare: React.FC = () => {
       render: (_: any, record: OrderInfo) => {
         // 根据标签页显示不同的操作按钮
         if (activeTab === "uploaded") {
-          // 已上传标签页：显示"查看"按钮
+          // 已上传标签页：显示"查看"和"异常记录"按钮
           return (
-            <Button type="link" onClick={() => handleViewCareLogDetail(record)}>
-              查看
-            </Button>
+            <>
+              <Button type="link" onClick={() => handleViewCareLogDetail(record)}>
+                查看
+              </Button>
+              <Button type="link" onClick={() => handleAddAbnormalRecord(record)}>
+                上传异常
+              </Button>
+            </>
           );
         } else {
-          // 待上传标签页：显示"上传"按钮
+          // 待上传标签页：显示"上传"和"异常记录"按钮
           return (
-            <Button type="link" onClick={() => handleViewDetails(record)}>
-              上传
-            </Button>
+            <>
+              <Button type="link" onClick={() => handleViewDetails(record)}>
+                上传
+              </Button>
+              <Button type="link" onClick={() => handleAddAbnormalRecord(record)}>
+                上传异常
+              </Button>
+            </>
           );
         }
       },
@@ -374,6 +387,97 @@ const DailyCare: React.FC = () => {
     setCurrentDetailRecord(null);
   };
 
+  // 处理添加异常记录
+  const handleAddAbnormalRecord = (record: OrderInfo) => {
+    setCurrentAbnormalRecord(record);
+    abnormalRecordForm.resetFields();
+    abnormalRecordForm.setFieldsValue({
+      isTreatment: false,
+      isNotified: false,
+    });
+    setAbnormalRecordModalOpen(true);
+  };
+
+  // 处理异常记录表单提交
+  const handleAbnormalRecordSubmit = async () => {
+    try {
+      const values = await abnormalRecordForm.validateFields();
+      
+      // 获取用户信息
+      const userInfo = getUserInfo();
+      if (!userInfo || !userInfo.userId) {
+        message.error("获取用户信息失败，请重新登录");
+        return;
+      }
+
+      // 获取订单ID和门店ID（从当前选中的记录中获取）
+      const orderId = currentAbnormalRecord?.orderId;
+      if (!orderId) {
+        message.error("无法获取订单信息，请重试");
+        return;
+      }
+
+      if (!storeId) {
+        message.error("无法获取门店信息，请重试");
+        return;
+      }
+
+      // 构建异常记录DTO
+      const dto = {
+        abnormalType: values.abnormalType,
+        description: values.description,
+        isNotified: values.isNotified ? 1 : 0,
+        isTreatment: values.isTreatment ? 1 : 0,
+        operatorId: userInfo.userId,
+        orderId: orderId,
+        storeId: storeId,
+        suggestionAction: values.suggestionAction,
+      };
+
+      // 调用 API 提交异常记录
+      setLoading(true);
+      try {
+        const result = await addAbnormalRecord(dto);
+
+        if (isSuccess(result.code)) {
+          // 根据返回值显示不同的提示信息
+          const data = result.data as any;
+          if (data?.notified === 1 && data?.approvalId) {
+            message.success("异常记录提交成功，已通知主人并生成治疗审批");
+          } else if (data?.notified === 1) {
+            message.success("异常记录提交成功，已通知主人");
+          } else {
+            message.success("异常记录提交成功");
+          }
+          setAbnormalRecordModalOpen(false);
+          abnormalRecordForm.resetFields();
+          setCurrentAbnormalRecord(null);
+        } else {
+          message.error(result.msg || "提交失败");
+        }
+      } catch (error: any) {
+        console.error("提交异常记录失败:", error);
+        const errorMsg =
+          error?.response?.data?.msg ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "提交失败，请稍后重试";
+        message.error(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("表单验证失败:", error);
+    }
+  };
+
+  // 处理异常记录模态框关闭
+  const handleAbnormalRecordCancel = () => {
+    setAbnormalRecordModalOpen(false);
+    abnormalRecordForm.resetFields();
+    setCurrentAbnormalRecord(null);
+  };
+
   // 处理表单提交
   const handleSubmit = async () => {
     try {
@@ -393,26 +497,25 @@ const DailyCare: React.FC = () => {
         return;
       }
 
-      // 构建照料时间对象（如果有选择时间）
-      let logTime: { hour?: number; minute?: number; second?: number } | undefined;
+      // 构建照料时间字符串（如果有选择时间）
+      // 后端 LocalTime 需要字符串格式 "HH:mm:ss"
+      // 虽然 TypeScript 类型定义是 LocalTime 对象，但后端实际期望的是字符串格式
+      let logTime: string | undefined;
       if (values.careTime) {
-        // careTime 是 dayjs 对象
-        logTime = {
-          hour: values.careTime.hour(),
-          minute: values.careTime.minute(),
-          second: values.careTime.second(),
-        };
+        // careTime 是 dayjs 对象，格式化为 "HH:mm:ss" 字符串
+        logTime = values.careTime.format('HH:mm:ss');
       }
 
       // 获取今天的日期时间（后端 LocalDateTime 需要 ISO 字符串格式，含 T）
       const logDate = dayjs().startOf('day').format('YYYY-MM-DDTHH:mm:ss');
 
       // 构建 CareLogDto 对象（使用请求体，类似创建订单）
-      const careLogDto = {
+      // 使用类型断言，因为后端实际期望 logTime 是字符串格式 "HH:mm:ss"，而不是 LocalTime 对象
+      const careLogDto: any = {
         careItem: values.careItem, // 照料项目（必填）
         details: values.careDetails, // 详细记录
         logDate: logDate, // 日志日期
-        logTime: logTime, // 照料时间对象
+        logTime: logTime, // 照料时间字符串 "HH:mm:ss"
         operatorId: userInfo.userId, // 用户（员工）id
         orderId: orderId, // 关联订单（必填）
       };
@@ -799,6 +902,74 @@ const DailyCare: React.FC = () => {
               </div>
             )}
           </Spin>
+        </Modal>
+
+        {/* 异常记录模态框 */}
+        <Modal
+          title="异常记录"
+          open={abnormalRecordModalOpen}
+          onCancel={handleAbnormalRecordCancel}
+          footer={[
+            <Button key="cancel" onClick={handleAbnormalRecordCancel}>
+              取消
+            </Button>,
+            <Button key="submit" type="primary" onClick={handleAbnormalRecordSubmit} loading={loading}>
+              提交
+            </Button>,
+          ]}
+          width={600}
+          destroyOnClose
+        >
+          <Form
+            form={abnormalRecordForm}
+            layout="vertical"
+            autoComplete="off"
+          >
+            <Form.Item
+              label="异常类型"
+              name="abnormalType"
+              rules={[{ required: true, message: "请输入异常类型" }]}
+            >
+              <Input placeholder="请输入异常类型" />
+            </Form.Item>
+
+            <Form.Item
+              label="异常描述"
+              name="description"
+              rules={[{ required: true, message: "请输入异常描述" }]}
+            >
+              <TextArea
+                rows={4}
+                placeholder="请输入异常描述"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="是否需要治疗"
+              name="isTreatment"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+
+            <Form.Item
+              label="是否通知主人"
+              name="isNotified"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+
+            <Form.Item
+              label="建议行动"
+              name="suggestionAction"
+            >
+              <TextArea
+                rows={3}
+                placeholder="请输入建议行动（可选）"
+              />
+            </Form.Item>
+          </Form>
         </Modal>
       </div>
     </div>
